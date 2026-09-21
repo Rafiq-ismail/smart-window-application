@@ -227,7 +227,7 @@ class WindowsPage extends StatelessWidget {
         bool isSaving = false;
 
         return StatefulBuilder(
-          builder: (context, setDialogState) {
+          builder: (dialogStateContext, setDialogState) {
             return AlertDialog(
               title: const Text(
                 "Add New Window",
@@ -295,10 +295,20 @@ class WindowsPage extends StatelessWidget {
 
                     // SUCCESS
                     if (success) {
-                      Navigator.pop(dialogContext);
+                      if (dialogContext.mounted) {
+                        Navigator.of(dialogContext).pop();
+                      }
 
-                      ScaffoldMessenger.of(context)
-                          .showSnackBar(
+                      // Give Flutter time to completely remove the dialog
+                      await Future<void>.delayed(
+                        const Duration(milliseconds: 200),
+                      );
+
+                      if (!context.mounted) {
+                        return;
+                      }
+
+                      ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text(
                             "Window added successfully.",
@@ -338,9 +348,7 @@ class WindowsPage extends StatelessWidget {
           },
         );
       },
-    ).then((_) {
-      nameController.dispose();
-    });
+    );
   }
 
   // ============================================================
@@ -356,14 +364,62 @@ class WindowsPage extends StatelessWidget {
   }) {
     showDialog(
       context: context,
-
       builder: (dialogContext) {
         bool isUpdating = false;
+        double selectedPercentage = openingPercentage.toDouble();
 
         return StatefulBuilder(
-          builder: (context, setDialogState) {
+          builder: (dialogStateContext, setDialogState) {
+            final selectedValue = selectedPercentage.round();
+            final selectedStatus =
+            selectedValue == 0 ? "CLOSED" : "OPEN";
+
             return AlertDialog(
-              title: Text(windowName),
+              title: Row(
+                children: [
+                  Expanded(
+                    child: Text(windowName),
+                  ),
+
+                  // EDIT WINDOW NAME
+                  IconButton(
+                    tooltip: "Edit Window",
+                    onPressed: isUpdating
+                        ? null
+                        : () {
+                      Navigator.pop(dialogContext);
+
+                      _showEditWindowDialog(
+                        context: context,
+                        windowId: windowId,
+                        currentName: windowName,
+                      );
+                    },
+                    icon: const Icon(
+                      Icons.edit_outlined,
+                    ),
+                  ),
+
+                  // DELETE WINDOW
+                  IconButton(
+                    tooltip: "Delete Window",
+                    onPressed: isUpdating
+                        ? null
+                        : () {
+                      Navigator.pop(dialogContext);
+
+                      _showDeleteWindowDialog(
+                        context: context,
+                        windowId: windowId,
+                        windowName: windowName,
+                      );
+                    },
+                    icon: const Icon(
+                      Icons.delete_outline_rounded,
+                    ),
+                  ),
+                ],
+              ),
 
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -377,7 +433,7 @@ class WindowsPage extends StatelessWidget {
                   const SizedBox(height: 16),
 
                   Text(
-                    status,
+                    selectedStatus,
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -387,16 +443,133 @@ class WindowsPage extends StatelessWidget {
                   const SizedBox(height: 5),
 
                   Text(
-                    "Opening: $openingPercentage%",
+                    "Opening: $selectedValue%",
                     style: const TextStyle(
                       color: AppColors.textSecondary,
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // POSITION SLIDER
+                  Slider(
+                    value: selectedPercentage,
+                    min: 0,
+                    max: 100,
+                    divisions: 4,
+                    label: "$selectedValue%",
+                    onChanged: isUpdating
+                        ? null
+                        : (value) {
+                      setDialogState(() {
+                        selectedPercentage = value;
+                      });
+                    },
+                  ),
+
+                  const Row(
+                    mainAxisAlignment:
+                    MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "0%",
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                      Text(
+                        "25%",
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                      Text(
+                        "50%",
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                      Text(
+                        "75%",
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                      Text(
+                        "100%",
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // APPLY POSITION
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: isUpdating
+                          ? null
+                          : () async {
+                        setDialogState(() {
+                          isUpdating = true;
+                        });
+
+                        final percentage =
+                        selectedPercentage.round();
+
+                        final success =
+                        await WindowService.instance
+                            .updateWindowState(
+                          windowId: windowId,
+                          openingPercentage: percentage,
+                        );
+
+                        if (!context.mounted) {
+                          return;
+                        }
+
+                        Navigator.pop(dialogContext);
+
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              success
+                                  ? "$windowName set to $percentage%."
+                                  : "Failed to update window.",
+                            ),
+                          ),
+                        );
+                      },
+                      icon: isUpdating
+                          ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                        ),
+                      )
+                          : const Icon(
+                        Icons.tune_rounded,
+                      ),
+                      label: const Text(
+                        "Apply Position",
+                      ),
                     ),
                   ),
                 ],
               ),
 
               actions: [
-                // CLOSE WINDOW
+                // CLOSE
                 OutlinedButton.icon(
                   onPressed: isUpdating
                       ? null
@@ -429,15 +602,13 @@ class WindowsPage extends StatelessWidget {
                       ),
                     );
                   },
-
                   icon: const Icon(
                     Icons.close_rounded,
                   ),
-
                   label: const Text("Close"),
                 ),
 
-                // OPEN WINDOW
+                // OPEN
                 ElevatedButton.icon(
                   onPressed: isUpdating
                       ? null
@@ -470,12 +641,231 @@ class WindowsPage extends StatelessWidget {
                       ),
                     );
                   },
-
                   icon: const Icon(
                     Icons.open_in_full_rounded,
                   ),
-
                   label: const Text("Open"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // ============================================================
+// EDIT WINDOW
+// ============================================================
+
+  void _showEditWindowDialog({
+    required BuildContext context,
+    required String windowId,
+    required String currentName,
+  }) {
+    final nameController = TextEditingController(
+      text: currentName,
+    );
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        bool isSaving = false;
+
+        return StatefulBuilder(
+          builder: (dialogStateContext, setDialogState) {
+            return AlertDialog(
+              title: const Text(
+                "Edit Window",
+              ),
+
+              content: TextField(
+                controller: nameController,
+                autofocus: true,
+                textCapitalization: TextCapitalization.words,
+                decoration: const InputDecoration(
+                  labelText: "Window Name",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+
+              actions: [
+                TextButton(
+                  onPressed: isSaving
+                      ? null
+                      : () {
+                    Navigator.pop(dialogContext);
+                  },
+                  child: const Text("Cancel"),
+                ),
+
+                ElevatedButton(
+                  onPressed: isSaving
+                      ? null
+                      : () async {
+                    final newName =
+                    nameController.text.trim();
+
+                    if (newName.isEmpty) {
+                      ScaffoldMessenger.of(context)
+                          .showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            "Window name cannot be empty.",
+                          ),
+                        ),
+                      );
+                      return;
+                    }
+
+                    setDialogState(() {
+                      isSaving = true;
+                    });
+
+                    final success =
+                    await WindowService.instance
+                        .updateWindow(
+                      windowId: windowId,
+                      name: newName,
+                    );
+
+                    if (!context.mounted) {
+                      return;
+                    }
+
+                    if (dialogContext.mounted) {
+                      Navigator.of(dialogContext).pop();
+                    }
+
+// Give Flutter time to completely remove the dialog
+                    await Future<void>.delayed(
+                      const Duration(milliseconds: 200),
+                    );
+
+                    if (!context.mounted) {
+                      return;
+                    }
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          success
+                              ? "Window renamed successfully."
+                              : "Failed to rename window.",
+                        ),
+                      ),
+                    );
+                  },
+                  child: isSaving
+                      ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                    ),
+                  )
+                      : const Text("Save"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+
+// ============================================================
+// DELETE WINDOW
+// ============================================================
+
+  void _showDeleteWindowDialog({
+    required BuildContext context,
+    required String windowId,
+    required String windowName,
+  }) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        bool isDeleting = false;
+
+        return StatefulBuilder(
+          builder: (dialogStateContext, setDialogState) {
+            return AlertDialog(
+              title: const Text(
+                "Delete Window",
+              ),
+
+              content: Text(
+                'Are you sure you want to delete "$windowName"? '
+                    'This action cannot be undone.',
+              ),
+
+              actions: [
+                TextButton(
+                  onPressed: isDeleting
+                      ? null
+                      : () {
+                    Navigator.pop(dialogContext);
+                  },
+                  child: const Text("Cancel"),
+                ),
+
+                ElevatedButton.icon(
+                  onPressed: isDeleting
+                      ? null
+                      : () async {
+                    setDialogState(() {
+                      isDeleting = true;
+                    });
+
+                    final success =
+                    await WindowService.instance
+                        .deleteWindow(
+                      windowId,
+                    );
+
+                    if (!context.mounted) {
+                      return;
+                    }
+
+                    if (dialogContext.mounted) {
+                      Navigator.of(dialogContext).pop();
+                    }
+
+// Give Flutter time to completely remove the dialog
+                    await Future<void>.delayed(
+                      const Duration(milliseconds: 200),
+                    );
+
+                    if (!context.mounted) {
+                      return;
+                    }
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          success
+                              ? "$windowName deleted successfully."
+                              : "Failed to delete window.",
+                        ),
+                      ),
+                    );
+                  },
+                  icon: isDeleting
+                      ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                    ),
+                  )
+                      : const Icon(
+                    Icons.delete_outline_rounded,
+                  ),
+                  label: const Text(
+                    "Delete",
+                  ),
                 ),
               ],
             );
