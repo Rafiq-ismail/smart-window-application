@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "533296878203",
+    "project_id": "smartwindow-131e5",
+    "storage_bucket": "smartwindow-131e5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:533296878203:android:83e9d8006598e1db1d08de",
+        "android_client_info": {
+          "package_name": "com.example.smart_window"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDTDgVjZc5cYlztWDGs-YsRJQOyzM8PIGQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
