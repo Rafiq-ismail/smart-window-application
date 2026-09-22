@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../dashboard/dashboard_page.dart';
 import '../window/windows_page.dart';
+import '../device/user_devices_page.dart';
 import '../sensors/sensors_page.dart';
 import '../analytics/analytics_page.dart';
 import '../profile/profile_page.dart';
@@ -21,6 +22,9 @@ class _HomePageState extends State<HomePage> {
 
     // USER WINDOWS
     const WindowsPage(),
+
+    // USER DEVICES / ESP32
+    const UserDevicesPage(),
 
     const SensorsPage(),
 
@@ -53,6 +57,11 @@ class _HomePageState extends State<HomePage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.window),
             label: "Windows",
+          ),
+
+          BottomNavigationBarItem(
+            icon: Icon(Icons.developer_board),
+            label: "Devices",
           ),
 
           BottomNavigationBarItem(
