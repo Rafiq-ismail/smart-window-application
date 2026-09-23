@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/app_colors.dart';
 import '../../services/device_service.dart';
+import '../../services/window_service.dart';
 
 class UserDevicesPage extends StatelessWidget {
   const UserDevicesPage({super.key});
@@ -262,6 +263,30 @@ class UserDevicesPage extends StatelessWidget {
                               fontSize: 11,
                             ),
                           ),
+                          const SizedBox(height: 14),
+
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                _showManageWindowsDialog(
+                                  context: context,
+                                  deviceId: document.id,
+                                  deviceName: deviceName,
+                                  currentManagedWindows:
+                                  List<String>.from(
+                                    data['managedWindows'] ?? [],
+                                  ),
+                                );
+                              },
+                              icon: const Icon(
+                                Icons.window_outlined,
+                              ),
+                              label: const Text(
+                                "Manage Windows",
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -466,4 +491,263 @@ class UserDevicesPage extends StatelessWidget {
     // immediately here because the dialog may still
     // be completing its removal animation.
   }
+
+
+// =========================================================
+// MANAGE WINDOWS
+// =========================================================
+
+void _showManageWindowsDialog({
+  required BuildContext context,
+  required String deviceId,
+  required String deviceName,
+  required List<String> currentManagedWindows,
+}) {
+  final selectedWindowIds =
+  Set<String>.from(
+    currentManagedWindows,
+  );
+
+  showDialog(
+    context: context,
+    builder: (dialogContext) {
+      bool isSaving = false;
+
+      return StatefulBuilder(
+        builder:
+            (dialogStateContext, setDialogState) {
+          return AlertDialog(
+            title: Text(
+              "Manage Windows\n$deviceName",
+            ),
+
+            content: SizedBox(
+              width: double.maxFinite,
+
+              child: StreamBuilder<
+                  QuerySnapshot<
+                      Map<String, dynamic>>>(
+                stream: WindowService.instance
+                    .getUserWindows(),
+
+                builder: (
+                    windowContext,
+                    windowSnapshot,
+                    ) {
+                  if (windowSnapshot
+                      .connectionState ==
+                      ConnectionState.waiting) {
+                    return const SizedBox(
+                      height: 120,
+                      child: Center(
+                        child:
+                        CircularProgressIndicator(),
+                      ),
+                    );
+                  }
+
+                  if (windowSnapshot.hasError) {
+                    return const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Text(
+                        "Unable to load windows.",
+                      ),
+                    );
+                  }
+
+                  final windows =
+                      windowSnapshot.data?.docs ??
+                          [];
+
+                  if (windows.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Text(
+                        "No windows available. Add a window first.",
+                        textAlign: TextAlign.center,
+                      ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: windows.length,
+
+                    itemBuilder:
+                        (context, index) {
+                      final windowDocument =
+                      windows[index];
+
+                      final windowData =
+                      windowDocument.data();
+
+                      final windowName =
+                          windowData['name']
+                              ?.toString() ??
+                              'Window';
+
+                      final assignedDeviceId =
+                      windowData[
+                      'assignedDeviceId'];
+
+                      final isSelected =
+                      selectedWindowIds
+                          .contains(
+                        windowDocument.id,
+                      );
+
+                      final assignedToOtherDevice =
+                          assignedDeviceId !=
+                              null &&
+                              assignedDeviceId !=
+                                  deviceId;
+
+                      return CheckboxListTile(
+                        contentPadding:
+                        EdgeInsets.zero,
+
+                        value: isSelected,
+
+                        title: Text(
+                          windowName,
+                        ),
+
+                        subtitle:
+                        assignedToOtherDevice
+                            ? const Text(
+                          "Currently assigned to another ESP32",
+                        )
+                            : null,
+
+                        secondary: Icon(
+                          Icons.window_outlined,
+                          color:
+                          AppColors.primary,
+                        ),
+
+                        onChanged: isSaving
+                            ? null
+                            : (value) {
+                          setDialogState(
+                                () {
+                              if (value ==
+                                  true) {
+                                selectedWindowIds
+                                    .add(
+                                  windowDocument
+                                      .id,
+                                );
+                              } else {
+                                selectedWindowIds
+                                    .remove(
+                                  windowDocument
+                                      .id,
+                                );
+                              }
+                            },
+                          );
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+
+            actions: [
+              TextButton(
+                onPressed: isSaving
+                    ? null
+                    : () {
+                  Navigator.of(
+                    dialogContext,
+                  ).pop();
+                },
+                child:
+                const Text("Cancel"),
+              ),
+
+              ElevatedButton(
+                onPressed: isSaving
+                    ? null
+                    : () async {
+                  setDialogState(() {
+                    isSaving = true;
+                  });
+
+                  final success =
+                  await WindowService
+                      .instance
+                      .assignWindowsToDevice(
+                    deviceId: deviceId,
+                    windowIds:
+                    selectedWindowIds
+                        .toList(),
+                  );
+
+                  if (!context.mounted) {
+                    return;
+                  }
+
+                  if (success) {
+                    if (dialogContext
+                        .mounted) {
+                      Navigator.of(
+                        dialogContext,
+                      ).pop();
+                    }
+
+                    await Future<void>.delayed(
+                      const Duration(
+                        milliseconds: 200,
+                      ),
+                    );
+
+                    if (!context.mounted) {
+                      return;
+                    }
+
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          "Window assignment updated successfully.",
+                        ),
+                      ),
+                    );
+                  } else {
+                    setDialogState(() {
+                      isSaving = false;
+                    });
+
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          "Failed to update window assignment.",
+                        ),
+                      ),
+                    );
+                  }
+                },
+
+                child: isSaving
+                    ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                  ),
+                )
+                    : const Text("Save"),
+              ),
+            ],
+          );
+            },
+      );
+    },
+  );
+}
 }

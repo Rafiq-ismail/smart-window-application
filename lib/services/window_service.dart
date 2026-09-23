@@ -236,6 +236,213 @@ class WindowService {
   }
 
   // =========================================================
+  // ASSIGN WINDOWS TO ESP32 DEVICE
+  // =========================================================
+
+  Future<bool> assignWindowsToDevice({
+    required String deviceId,
+    required List<String> windowIds,
+  }) async {
+    final userId = currentUserId;
+
+    if (userId == null) {
+      return false;
+    }
+
+    try {
+      // -----------------------------------------------------
+      // 1. CHECK DEVICE
+      // -----------------------------------------------------
+
+      final deviceRef = _firestore
+          .collection('devices')
+          .doc(deviceId);
+
+      final deviceDocument =
+      await deviceRef.get();
+
+      if (!deviceDocument.exists) {
+        return false;
+      }
+
+      final deviceData =
+      deviceDocument.data();
+
+      if (deviceData == null ||
+          deviceData['userId'] != userId) {
+        return false;
+      }
+
+      // -----------------------------------------------------
+      // 2. GET ALL USER WINDOWS
+      // -----------------------------------------------------
+
+      final userWindowsSnapshot =
+      await _firestore
+          .collection('windows')
+          .where(
+        'userId',
+        isEqualTo: userId,
+      )
+          .get();
+
+      // -----------------------------------------------------
+      // 3. VALIDATE SELECTED WINDOWS
+      // -----------------------------------------------------
+
+      final validWindowIds =
+      userWindowsSnapshot.docs
+          .map((doc) => doc.id)
+          .toSet();
+
+      for (final windowId in windowIds) {
+        if (!validWindowIds.contains(
+          windowId,
+        )) {
+          return false;
+        }
+      }
+
+      // -----------------------------------------------------
+      // 4. CREATE FIRESTORE BATCH
+      // -----------------------------------------------------
+
+      final batch =
+      _firestore.batch();
+
+      // -----------------------------------------------------
+      // 5. UPDATE WINDOWS
+      // -----------------------------------------------------
+
+      for (final windowDocument
+      in userWindowsSnapshot.docs) {
+        final data =
+        windowDocument.data();
+
+        final currentDeviceId =
+        data['assignedDeviceId'];
+
+        final shouldBeAssigned =
+        windowIds.contains(
+          windowDocument.id,
+        );
+
+        // Selected window:
+        // assign to this ESP32.
+        if (shouldBeAssigned) {
+          batch.update(
+            windowDocument.reference,
+            {
+              'assignedDeviceId':
+              deviceId,
+              'updatedAt':
+              FieldValue
+                  .serverTimestamp(),
+            },
+          );
+        }
+
+        // Window was previously assigned to
+        // this ESP32 but user unselected it.
+        if (!shouldBeAssigned &&
+            currentDeviceId == deviceId) {
+          batch.update(
+            windowDocument.reference,
+            {
+              'assignedDeviceId':
+              null,
+              'updatedAt':
+              FieldValue
+                  .serverTimestamp(),
+            },
+          );
+        }
+      }
+
+      // -----------------------------------------------------
+      // 6. UPDATE CURRENT DEVICE
+      // -----------------------------------------------------
+
+      batch.update(
+        deviceRef,
+        {
+          'managedWindows':
+          windowIds,
+          'updatedAt':
+          FieldValue.serverTimestamp(),
+        },
+      );
+
+      // -----------------------------------------------------
+      // 7. REMOVE WINDOW FROM OTHER DEVICES
+      // -----------------------------------------------------
+
+      final userDevicesSnapshot =
+      await _firestore
+          .collection('devices')
+          .where(
+        'userId',
+        isEqualTo: userId,
+      )
+          .get();
+
+      for (final deviceDocument
+      in userDevicesSnapshot.docs) {
+        if (deviceDocument.id ==
+            deviceId) {
+          continue;
+        }
+
+        final data =
+        deviceDocument.data();
+
+        final currentManagedWindows =
+        List<String>.from(
+          data['managedWindows'] ?? [],
+        );
+
+        final updatedManagedWindows =
+        currentManagedWindows
+            .where(
+              (windowId) =>
+          !windowIds.contains(
+            windowId,
+          ),
+        )
+            .toList();
+
+        if (updatedManagedWindows.length !=
+            currentManagedWindows.length) {
+          batch.update(
+            deviceDocument.reference,
+            {
+              'managedWindows':
+              updatedManagedWindows,
+              'updatedAt':
+              FieldValue
+                  .serverTimestamp(),
+            },
+          );
+        }
+      }
+
+      // -----------------------------------------------------
+      // 8. COMMIT EVERYTHING TOGETHER
+      // -----------------------------------------------------
+
+      await batch.commit();
+
+      return true;
+    } catch (e) {
+      print(
+        'Assign Windows To Device Error: $e',
+      );
+
+      return false;
+    }
+  }
+
+  // =========================================================
   // DELETE WINDOW
   // =========================================================
 
