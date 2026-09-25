@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'firestore_sensor_service.dart';
 
 class AuthService {
   static final AuthService instance = AuthService._();
@@ -47,6 +48,9 @@ class AuthService {
         'lastLogin': FieldValue.serverTimestamp(),
       });
 
+// Create default virtual sensors for the new user.
+      await FirestoreSensorService.instance.createDefaultSensors();
+
       return true;
     } on FirebaseAuthException catch (e) {
       print(
@@ -87,6 +91,18 @@ class AuthService {
         },
         SetOptions(merge: true),
       );
+
+// Check the user's role first.
+      final userDocument =
+      await _firestore.collection('users').doc(user.uid).get();
+
+      final role =
+          userDocument.data()?['role']?.toString().toLowerCase() ?? 'user';
+
+// Only normal users need Smart Window sensors.
+      if (role != 'admin') {
+        await FirestoreSensorService.instance.createDefaultSensors();
+      }
 
       return true;
     } on FirebaseAuthException catch (e) {
