@@ -13,8 +13,17 @@ class SensorService {
 
   final Random random = Random();
 
+// ROOM 1 - Living Room
   double temperature = 28;
   double humidity = 65;
+
+// ROOM 2 - Bedroom
+  double room2Temperature = 28;
+  double room2Humidity = 65;
+
+// ROOM 3 - Kitchen
+  double room3Temperature = 28;
+  double room3Humidity = 65;
 
   bool rain = false;
   bool smoke = false;
@@ -75,6 +84,44 @@ class SensorService {
 
             if (humidityValue is num) {
               humidity = humidityValue.toDouble();
+            }
+          }
+
+          // =========================
+// ROOM 2 - DHT22
+// =========================
+
+          final room2 = data['room2'];
+
+          if (room2 is Map) {
+            final tempValue = room2['temperature'];
+            final humidityValue = room2['humidity'];
+
+            if (tempValue is num) {
+              room2Temperature = tempValue.toDouble();
+            }
+
+            if (humidityValue is num) {
+              room2Humidity = humidityValue.toDouble();
+            }
+          }
+
+// =========================
+// ROOM 3 - DHT22
+// =========================
+
+          final room3 = data['room3'];
+
+          if (room3 is Map) {
+            final tempValue = room3['temperature'];
+            final humidityValue = room3['humidity'];
+
+            if (tempValue is num) {
+              room3Temperature = tempValue.toDouble();
+            }
+
+            if (humidityValue is num) {
+              room3Humidity = humidityValue.toDouble();
             }
           }
 

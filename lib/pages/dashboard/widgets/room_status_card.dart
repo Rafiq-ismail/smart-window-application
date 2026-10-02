@@ -22,6 +22,17 @@ class RoomStatusCard extends StatelessWidget {
       builder: (context, snapshot) {
         final sensor = SensorService.instance;
 
+        double roomTemperature;
+
+        if (roomName == "Bedroom") {
+          roomTemperature = sensor.room2Temperature;
+        } else if (roomName == "Kitchen") {
+          roomTemperature = sensor.room3Temperature;
+        } else {
+          // Living Room = Room 1
+          roomTemperature = sensor.temperature;
+        }
+
         final bool isOpen = sensor.windowOpen;
         final double opening = sensor.windowOpening;
 
@@ -216,7 +227,7 @@ class RoomStatusCard extends StatelessWidget {
                           icon: Icons.thermostat_rounded,
                           label: "Temperature",
                           value:
-                          "${sensor.temperature.toStringAsFixed(1)}°C",
+                          "${roomTemperature.toStringAsFixed(1)}°C",
                         ),
                       ),
                     ],
