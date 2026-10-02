@@ -29,8 +29,8 @@ Future<void> main() async {
   SensorService.instance.autoMode =
       SettingsService.instance.autoMode;
 
-  // Start sensor simulation
-  SensorService.instance.startSimulation();
+
+  SensorService.instance.startFirebaseSensors();
 
   // Load provider settings
   final settingsProvider = SettingsProvider();
