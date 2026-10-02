@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/app_colors.dart';
 import '../../services/window_service.dart';
+import '../../services/firebase_window_control_service.dart';
 
 class WindowsPage extends StatelessWidget {
   const WindowsPage({super.key});
@@ -585,6 +586,10 @@ class WindowsPage extends StatelessWidget {
                       openingPercentage: 0,
                     );
 
+                    if (success) {
+                      await FirebaseWindowControlService.instance.closeWindow1();
+                    }
+
                     if (!context.mounted) {
                       return;
                     }
@@ -623,6 +628,10 @@ class WindowsPage extends StatelessWidget {
                       windowId: windowId,
                       openingPercentage: 100,
                     );
+
+                    if (success) {
+                      await FirebaseWindowControlService.instance.openWindow1();
+                    }
 
                     if (!context.mounted) {
                       return;
