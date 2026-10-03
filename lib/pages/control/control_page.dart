@@ -21,6 +21,9 @@ class ControlPage extends StatefulWidget {
 }
 
 class _ControlPageState extends State<ControlPage> {
+  double? _sliderValue;
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -301,12 +304,96 @@ class _ControlPageState extends State<ControlPage> {
                     const SizedBox(height: 10),
 
                     Slider(
-                      value: openingPercentage.clamp(0.0, 100.0),
+                      value: (_sliderValue ?? openingPercentage).clamp(0.0, 100.0),
                       min: 0,
                       max: 100,
                       divisions: 100,
-                      label: "${openingPercentage.toInt()}%",
-                      onChanged: null,
+                      label: "${(_sliderValue ?? openingPercentage).toInt()}%",
+                      onChanged: (value) {
+                        setState(() {
+                          _sliderValue = value;
+
+                        });
+                      },
+
+                      onChangeEnd: (value) async {
+                        final percent = value.round();
+
+                        if (widget.windowId.isEmpty ||
+                            widget.actuatorChannel < 1 ||
+                            widget.actuatorChannel > 3) {
+                          setState(() {
+                            _sliderValue = null;
+
+                          });
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                "This window is not assigned to an actuator.",
+                              ),
+                            ),
+                          );
+                          return;
+                        }
+
+                        bool success = false;
+
+                        switch (widget.actuatorChannel) {
+                          case 1:
+                            success = await Esp32ControlService.instance
+                                .setWindow1Position(percent);
+                            break;
+
+                          case 2:
+                            success = await Esp32ControlService.instance
+                                .setWindow2Position(percent);
+                            break;
+
+                          case 3:
+                            success = await Esp32ControlService.instance
+                                .setWindow3Position(percent);
+                            break;
+                        }
+
+                        if (!mounted) return;
+
+                        if (success) {
+                          await WindowService.instance.updateWindowState(
+                            windowId: widget.windowId,
+                            openingPercentage: percent,
+                          );
+
+                          if (!mounted) return;
+
+                          setState(() {
+                            _sliderValue = null;
+
+                          });
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                "Window position set to $percent%.",
+                              ),
+                            ),
+                          );
+                        } else {
+                          setState(() {
+                            _sliderValue = null;
+
+                          });
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                "Failed to change window position.",
+                              ),
+                            ),
+                          );
+                        }
+                      },
+
                     ),
 
                     Center(

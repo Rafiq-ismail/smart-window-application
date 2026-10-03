@@ -57,6 +57,32 @@ class Esp32ControlService {
     }
   }
 
+  Future<bool> setWindow1Position(int percent) async {
+    try {
+      final safePercent = percent.clamp(0, 100);
+
+      final response = await http
+          .get(
+        Uri.parse(
+          '$_esp32BaseUrl/window1/position?percent=$safePercent',
+        ),
+      )
+          .timeout(const Duration(seconds: 5));
+
+      print(
+        'ESP32 WINDOW 1 POSITION response: ${response.statusCode}',
+      );
+      print(
+        'ESP32 WINDOW 1 POSITION body: ${response.body}',
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('ESP32 WINDOW 1 POSITION error: $e');
+      return false;
+    }
+  }
+
   // ============================================================
   // WINDOW 2
   // ============================================================
@@ -105,6 +131,32 @@ class Esp32ControlService {
     }
   }
 
+  Future<bool> setWindow2Position(int percent) async {
+    try {
+      final safePercent = percent.clamp(0, 100);
+
+      final response = await http
+          .get(
+        Uri.parse(
+          '$_esp32BaseUrl/window2/position?percent=$safePercent',
+        ),
+      )
+          .timeout(const Duration(seconds: 5));
+
+      print(
+        'ESP32 WINDOW 2 POSITION response: ${response.statusCode}',
+      );
+      print(
+        'ESP32 WINDOW 2 POSITION body: ${response.body}',
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('ESP32 WINDOW 2 POSITION error: $e');
+      return false;
+    }
+  }
+
   // ============================================================
   // WINDOW 3
   // ============================================================
@@ -127,6 +179,32 @@ class Esp32ControlService {
       return response.statusCode == 200;
     } catch (e) {
       print('ESP32 WINDOW 3 OPEN error: $e');
+      return false;
+    }
+  }
+
+  Future<bool> setWindow3Position(int percent) async {
+    try {
+      final safePercent = percent.clamp(0, 100);
+
+      final response = await http
+          .get(
+        Uri.parse(
+          '$_esp32BaseUrl/window3/position?percent=$safePercent',
+        ),
+      )
+          .timeout(const Duration(seconds: 5));
+
+      print(
+        'ESP32 WINDOW 3 POSITION response: ${response.statusCode}',
+      );
+      print(
+        'ESP32 WINDOW 3 POSITION body: ${response.body}',
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('ESP32 WINDOW 3 POSITION error: $e');
       return false;
     }
   }
