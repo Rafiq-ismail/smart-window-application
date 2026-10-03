@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/sensor_service.dart';
+import '../../services/esp32_control_service.dart';
+import '../../services/window_service.dart';
 
 class ControlPage extends StatefulWidget {
   final String windowId;
@@ -155,8 +157,63 @@ class _ControlPageState extends State<ControlPage> {
                           child: ElevatedButton.icon(
                             icon: const Icon(Icons.window),
                             label: const Text("OPEN"),
-                            onPressed: () {
-                              sensor.openWindow();
+                            onPressed: () async {
+                              if (widget.windowId.isEmpty ||
+                                  widget.actuatorChannel < 1 ||
+                                  widget.actuatorChannel > 3) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      "This window is not assigned to an actuator.",
+                                    ),
+                                  ),
+                                );
+                                return;
+                              }
+
+                              bool success = false;
+
+                              switch (widget.actuatorChannel) {
+                                case 1:
+                                  success = await Esp32ControlService.instance
+                                      .openWindow1();
+                                  break;
+
+                                case 2:
+                                  success = await Esp32ControlService.instance
+                                      .openWindow2();
+                                  break;
+
+                                case 3:
+                                  success = await Esp32ControlService.instance
+                                      .openWindow3();
+                                  break;
+                              }
+
+                              if (!mounted) return;
+
+                              if (success) {
+                                await WindowService.instance.updateWindowState(
+                                  windowId: widget.windowId,
+                                  openingPercentage: 100,
+                                );
+
+                                if (!mounted) return;
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      "Window opened successfully.",
+                                    ),
+                                  ),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Failed to open window."),
+                                  ),
+                                );
+                              }
                             },
                           ),
                         ),
@@ -167,8 +224,63 @@ class _ControlPageState extends State<ControlPage> {
                           child: ElevatedButton.icon(
                             icon: const Icon(Icons.window_outlined),
                             label: const Text("CLOSE"),
-                            onPressed: () {
-                              sensor.closeWindow();
+                            onPressed: () async {
+                              if (widget.windowId.isEmpty ||
+                                  widget.actuatorChannel < 1 ||
+                                  widget.actuatorChannel > 3) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      "This window is not assigned to an actuator.",
+                                    ),
+                                  ),
+                                );
+                                return;
+                              }
+
+                              bool success = false;
+
+                              switch (widget.actuatorChannel) {
+                                case 1:
+                                  success = await Esp32ControlService.instance
+                                      .closeWindow1();
+                                  break;
+
+                                case 2:
+                                  success = await Esp32ControlService.instance
+                                      .closeWindow2();
+                                  break;
+
+                                case 3:
+                                  success = await Esp32ControlService.instance
+                                      .closeWindow3();
+                                  break;
+                              }
+
+                              if (!mounted) return;
+
+                              if (success) {
+                                await WindowService.instance.updateWindowState(
+                                  windowId: widget.windowId,
+                                  openingPercentage: 0,
+                                );
+
+                                if (!mounted) return;
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      "Window closed successfully.",
+                                    ),
+                                  ),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Failed to close window."),
+                                  ),
+                                );
+                              }
                             },
                           ),
                         ),
