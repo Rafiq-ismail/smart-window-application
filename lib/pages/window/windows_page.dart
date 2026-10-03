@@ -588,13 +588,38 @@ class WindowsPage extends StatelessWidget {
                     );
 
                     if (success) {
-                      final esp32Success =
-                      await Esp32ControlService.instance.closeWindow1();
+                      bool esp32Success = false;
 
-                      if (esp32Success) {
-                        print('WINDOW 1 CLOSE -> ESP32 SUCCESS');
+                      if (windowName.toLowerCase() == 'toilet lv1') {
+                        // TOILET LV1 -> ACTUATOR 2
+                        esp32Success =
+                        await Esp32ControlService.instance.closeWindow2();
+
+                        print(
+                          esp32Success
+                              ? 'WINDOW 2 CLOSE -> ESP32 SUCCESS'
+                              : 'WINDOW 2 CLOSE -> ESP32 FAILED',
+                        );
+                      } else if (windowName.toLowerCase() == 'kitchen') {
+                        // KITCHEN -> ACTUATOR 3
+                        esp32Success =
+                        await Esp32ControlService.instance.closeWindow3();
+
+                        print(
+                          esp32Success
+                              ? 'WINDOW 3 CLOSE -> ESP32 SUCCESS'
+                              : 'WINDOW 3 CLOSE -> ESP32 FAILED',
+                        );
                       } else {
-                        print('WINDOW 1 CLOSE -> ESP32 FAILED');
+                        // MASTER BEDROOM -> ACTUATOR 1
+                        esp32Success =
+                        await Esp32ControlService.instance.closeWindow1();
+
+                        print(
+                          esp32Success
+                              ? 'WINDOW 1 CLOSE -> ESP32 SUCCESS'
+                              : 'WINDOW 1 CLOSE -> ESP32 FAILED',
+                        );
                       }
                     }
 
@@ -604,8 +629,7 @@ class WindowsPage extends StatelessWidget {
 
                     Navigator.pop(dialogContext);
 
-                    ScaffoldMessenger.of(context)
-                        .showSnackBar(
+                    ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
                           success
@@ -638,13 +662,38 @@ class WindowsPage extends StatelessWidget {
                     );
 
                     if (success) {
-                      final esp32Success =
-                      await Esp32ControlService.instance.openWindow1();
+                      bool esp32Success = false;
 
-                      if (esp32Success) {
-                        print('WINDOW 1 OPEN -> ESP32 SUCCESS');
+                      if (windowName.toLowerCase() == 'toilet lv1') {
+                        // TOILET LV1 -> ACTUATOR 2
+                        esp32Success =
+                        await Esp32ControlService.instance.openWindow2();
+
+                        print(
+                          esp32Success
+                              ? 'WINDOW 2 OPEN -> ESP32 SUCCESS'
+                              : 'WINDOW 2 OPEN -> ESP32 FAILED',
+                        );
+                      } else if (windowName.toLowerCase() == 'kitchen') {
+                        // KITCHEN -> ACTUATOR 3
+                        esp32Success =
+                        await Esp32ControlService.instance.openWindow3();
+
+                        print(
+                          esp32Success
+                              ? 'WINDOW 3 OPEN -> ESP32 SUCCESS'
+                              : 'WINDOW 3 OPEN -> ESP32 FAILED',
+                        );
                       } else {
-                        print('WINDOW 1 OPEN -> ESP32 FAILED');
+                        // MASTER BEDROOM -> ACTUATOR 1
+                        esp32Success =
+                        await Esp32ControlService.instance.openWindow1();
+
+                        print(
+                          esp32Success
+                              ? 'WINDOW 1 OPEN -> ESP32 SUCCESS'
+                              : 'WINDOW 1 OPEN -> ESP32 FAILED',
+                        );
                       }
                     }
 
@@ -654,8 +703,7 @@ class WindowsPage extends StatelessWidget {
 
                     Navigator.pop(dialogContext);
 
-                    ScaffoldMessenger.of(context)
-                        .showSnackBar(
+                    ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
                           success
