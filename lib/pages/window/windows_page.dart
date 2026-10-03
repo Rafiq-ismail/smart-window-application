@@ -124,6 +124,11 @@ class WindowsPage extends StatelessWidget {
                       ?.toInt() ??
                       0;
 
+              final actuatorChannel =
+                  (data['actuatorChannel'] as num?)
+                      ?.toInt() ??
+                      0;
+
               final isOpen = status == 'OPEN';
 
               // CLICKABLE WINDOW CARD
@@ -137,6 +142,7 @@ class WindowsPage extends StatelessWidget {
                     windowName: name,
                     status: status,
                     openingPercentage: openingPercentage,
+                    actuatorChannel: actuatorChannel,
                   );
                 },
 
@@ -363,6 +369,7 @@ class WindowsPage extends StatelessWidget {
     required String windowName,
     required String status,
     required int openingPercentage,
+    required int actuatorChannel,
   }) {
     showDialog(
       context: context,
@@ -590,8 +597,16 @@ class WindowsPage extends StatelessWidget {
                     if (success) {
                       bool esp32Success = false;
 
-                      if (windowName.toLowerCase() == 'toilet lv1') {
-                        // TOILET LV1 -> ACTUATOR 2
+                      if (actuatorChannel == 1) {
+                        esp32Success =
+                        await Esp32ControlService.instance.closeWindow1();
+
+                        print(
+                          esp32Success
+                              ? 'WINDOW 1 CLOSE -> ESP32 SUCCESS'
+                              : 'WINDOW 1 CLOSE -> ESP32 FAILED',
+                        );
+                      } else if (actuatorChannel == 2) {
                         esp32Success =
                         await Esp32ControlService.instance.closeWindow2();
 
@@ -600,8 +615,7 @@ class WindowsPage extends StatelessWidget {
                               ? 'WINDOW 2 CLOSE -> ESP32 SUCCESS'
                               : 'WINDOW 2 CLOSE -> ESP32 FAILED',
                         );
-                      } else if (windowName.toLowerCase() == 'kitchen') {
-                        // KITCHEN -> ACTUATOR 3
+                      } else if (actuatorChannel == 3) {
                         esp32Success =
                         await Esp32ControlService.instance.closeWindow3();
 
@@ -611,14 +625,8 @@ class WindowsPage extends StatelessWidget {
                               : 'WINDOW 3 CLOSE -> ESP32 FAILED',
                         );
                       } else {
-                        // MASTER BEDROOM -> ACTUATOR 1
-                        esp32Success =
-                        await Esp32ControlService.instance.closeWindow1();
-
                         print(
-                          esp32Success
-                              ? 'WINDOW 1 CLOSE -> ESP32 SUCCESS'
-                              : 'WINDOW 1 CLOSE -> ESP32 FAILED',
+                          'ESP32 CLOSE FAILED: Invalid actuatorChannel $actuatorChannel',
                         );
                       }
                     }
@@ -664,8 +672,16 @@ class WindowsPage extends StatelessWidget {
                     if (success) {
                       bool esp32Success = false;
 
-                      if (windowName.toLowerCase() == 'toilet lv1') {
-                        // TOILET LV1 -> ACTUATOR 2
+                      if (actuatorChannel == 1) {
+                        esp32Success =
+                        await Esp32ControlService.instance.openWindow1();
+
+                        print(
+                          esp32Success
+                              ? 'WINDOW 1 OPEN -> ESP32 SUCCESS'
+                              : 'WINDOW 1 OPEN -> ESP32 FAILED',
+                        );
+                      } else if (actuatorChannel == 2) {
                         esp32Success =
                         await Esp32ControlService.instance.openWindow2();
 
@@ -674,8 +690,7 @@ class WindowsPage extends StatelessWidget {
                               ? 'WINDOW 2 OPEN -> ESP32 SUCCESS'
                               : 'WINDOW 2 OPEN -> ESP32 FAILED',
                         );
-                      } else if (windowName.toLowerCase() == 'kitchen') {
-                        // KITCHEN -> ACTUATOR 3
+                      } else if (actuatorChannel == 3) {
                         esp32Success =
                         await Esp32ControlService.instance.openWindow3();
 
@@ -685,14 +700,8 @@ class WindowsPage extends StatelessWidget {
                               : 'WINDOW 3 OPEN -> ESP32 FAILED',
                         );
                       } else {
-                        // MASTER BEDROOM -> ACTUATOR 1
-                        esp32Success =
-                        await Esp32ControlService.instance.openWindow1();
-
                         print(
-                          esp32Success
-                              ? 'WINDOW 1 OPEN -> ESP32 SUCCESS'
-                              : 'WINDOW 1 OPEN -> ESP32 FAILED',
+                          'ESP32 OPEN FAILED: Invalid actuatorChannel $actuatorChannel',
                         );
                       }
                     }
