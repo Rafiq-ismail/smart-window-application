@@ -51,6 +51,27 @@ class _ControlPageState extends State<ControlPage> {
             builder: (context, sensorSnapshot) {
               final sensor = SensorService.instance;
 
+              double roomTemperature = sensor.temperature;
+              double roomHumidity = sensor.humidity;
+
+              switch (widget.actuatorChannel) {
+                case 2:
+                  roomTemperature = sensor.room2Temperature;
+                  roomHumidity = sensor.room2Humidity;
+                  break;
+
+                case 3:
+                  roomTemperature = sensor.room3Temperature;
+                  roomHumidity = sensor.room3Humidity;
+                  break;
+
+                case 1:
+                default:
+                  roomTemperature = sensor.temperature;
+                  roomHumidity = sensor.humidity;
+                  break;
+              }
+
               return SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
                 child: Column(
@@ -456,7 +477,7 @@ class _ControlPageState extends State<ControlPage> {
                           ),
                         ),
                         trailing: Text(
-                          "${sensor.temperature.toStringAsFixed(1)} °C",
+                          "${roomTemperature.toStringAsFixed(1)} °C",
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 13,
@@ -500,7 +521,7 @@ class _ControlPageState extends State<ControlPage> {
                           ),
                         ),
                         trailing: Text(
-                          "${sensor.humidity.toStringAsFixed(0)} %",
+                          "${roomHumidity.toStringAsFixed(0)} %",
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 13,
