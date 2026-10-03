@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../services/window_service.dart';
+
 import '../notification/notification_page.dart';
 
 import '../../services/sensor_service.dart';
@@ -197,56 +200,90 @@ class _DashboardPageState extends State<DashboardPage> {
 
             const SizedBox(height: 15),
 
-            RoomStatusCard(
-              roomName: "Living Room",
-              icon: Icons.weekend_rounded,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const ControlPage(
-                      roomName: "Living Room",
+            StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: WindowService.instance.getUserWindows(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(20),
+                      child: CircularProgressIndicator(),
                     ),
+                  );
+                }
+
+                if (snapshot.hasError) {
+                  return const Text(
+                    "Unable to load windows.",
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                    ),
+                  );
+                }
+
+                final windows = snapshot.data?.docs ?? [];
+
+                if (windows.isEmpty) {
+                  return const Text(
+                    "No windows added yet.",
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                    ),
+                  );
+                }
+
+                return Column(
+                  children: List.generate(
+                    windows.length,
+                        (index) {
+                      final document = windows[index];
+                      final data = document.data();
+
+                      final windowName =
+                          data['name']?.toString() ?? 'Window';
+
+                      final status =
+                          data['status']?.toString() ?? 'CLOSED';
+
+                      final openingPercentage =
+                          (data['openingPercentage'] as num?)
+                              ?.toInt() ??
+                              0;
+
+                      final actuatorChannel =
+                          (data['actuatorChannel'] as num?)
+                              ?.toInt() ??
+                              0;
+
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          bottom: index == windows.length - 1 ? 0 : 15,
+                        ),
+                        child: RoomStatusCard(
+                          roomName: windowName,
+                          icon: Icons.window_rounded,
+                          status: status,
+                          openingPercentage: openingPercentage,
+                          actuatorChannel: actuatorChannel,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ControlPage(
+                                  windowId: document.id,
+                                  roomName: windowName,
+                                  actuatorChannel: actuatorChannel,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
                   ),
                 );
               },
             ),
-
-            const SizedBox(height: 15),
-
-            RoomStatusCard(
-              roomName: "Bedroom",
-              icon: Icons.bedroom_parent_rounded,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const ControlPage(
-                      roomName: "Bedroom",
-                    ),
-                  ),
-                );
-              },
-            ),
-
-            const SizedBox(height: 15),
-
-            RoomStatusCard(
-              roomName: "Kitchen",
-              icon: Icons.kitchen_rounded,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const ControlPage(
-                      roomName: "Kitchen",
-                    ),
-                  ),
-                );
-              },
-            ),
-
-            const SizedBox(height: 30),
 
             const Text(
               "Sensor Status",

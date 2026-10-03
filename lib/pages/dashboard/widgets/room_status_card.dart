@@ -6,12 +6,18 @@ import '../../../services/sensor_service.dart';
 class RoomStatusCard extends StatelessWidget {
   final String roomName;
   final IconData icon;
+  final String status;
+  final int openingPercentage;
+  final int actuatorChannel;
   final VoidCallback? onTap;
 
   const RoomStatusCard({
     super.key,
     required this.roomName,
     required this.icon,
+    this.status = 'CLOSED',
+    this.openingPercentage = 0,
+    this.actuatorChannel = 0,
     this.onTap,
   });
 
@@ -33,8 +39,8 @@ class RoomStatusCard extends StatelessWidget {
           roomTemperature = sensor.temperature;
         }
 
-        final bool isOpen = sensor.windowOpen;
-        final double opening = sensor.windowOpening;
+        final bool isOpen = status.toUpperCase() == 'OPEN';
+        final double opening = openingPercentage.toDouble();
 
         final Color statusColor = isOpen
             ? AppColors.success
