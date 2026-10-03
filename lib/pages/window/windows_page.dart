@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../core/app_colors.dart';
 import '../../services/window_service.dart';
 import '../../services/firebase_window_control_service.dart';
+import '../../services/esp32_control_service.dart';
 
 class WindowsPage extends StatelessWidget {
   const WindowsPage({super.key});
@@ -587,7 +588,14 @@ class WindowsPage extends StatelessWidget {
                     );
 
                     if (success) {
-                      await FirebaseWindowControlService.instance.closeWindow1();
+                      final esp32Success =
+                      await Esp32ControlService.instance.closeWindow1();
+
+                      if (esp32Success) {
+                        print('WINDOW 1 CLOSE -> ESP32 SUCCESS');
+                      } else {
+                        print('WINDOW 1 CLOSE -> ESP32 FAILED');
+                      }
                     }
 
                     if (!context.mounted) {
@@ -630,7 +638,14 @@ class WindowsPage extends StatelessWidget {
                     );
 
                     if (success) {
-                      await FirebaseWindowControlService.instance.openWindow1();
+                      final esp32Success =
+                      await Esp32ControlService.instance.openWindow1();
+
+                      if (esp32Success) {
+                        print('WINDOW 1 OPEN -> ESP32 SUCCESS');
+                      } else {
+                        print('WINDOW 1 OPEN -> ESP32 FAILED');
+                      }
                     }
 
                     if (!context.mounted) {
