@@ -107,6 +107,7 @@ class SensorService {
           if (room1 is Map) {
             final tempValue = room1['temperature'];
             final humidityValue = room1['humidity'];
+            final smokeValue = room1['smokeDetected'];
 
             if (tempValue is num) {
               temperature = tempValue.toDouble();
@@ -114,6 +115,10 @@ class SensorService {
 
             if (humidityValue is num) {
               humidity = humidityValue.toDouble();
+            }
+
+            if (smokeValue is bool) {
+              smoke = smokeValue;
             }
           }
 
@@ -186,6 +191,21 @@ class SensorService {
 
           _lastRainForFirestoreSync = rain;
 
+          // ============================================================
+// SMOKE AUTO-CLOSE -> FIRESTORE SYNC
+// ============================================================
+
+// MQ Room 1 controls Window 1 only.
+// ESP32 already closes the physical actuator.
+// Flutter only synchronizes the result to Firestore.
+          if (smoke && !_lastSmoke && autoMode) {
+            print(
+              'SMOKE EDGE -> Syncing Window 1 closed to Firestore',
+            );
+
+            WindowService.instance.syncSmokeClosedWindow1();
+          }
+
 
 
           // =========================
@@ -212,10 +232,11 @@ class SensorService {
           );
 
           // =========================
-          // RAIN NOTIFICATION
-          // =========================
+// SENSOR NOTIFICATIONS
+// =========================
 
           if (SettingsService.instance.notifications) {
+            // Rain notification
             if (rain && !_lastRain) {
               NotificationService.instance.addNotification(
                 title: 'Rain Detected',
@@ -224,15 +245,27 @@ class SensorService {
                     : 'Rain detected. Auto Mode is OFF.',
               );
             }
+
+            // Smoke / gas notification
+            if (smoke && !_lastSmoke) {
+              NotificationService.instance.addNotification(
+                title: 'Smoke Alert',
+                message: autoMode
+                    ? 'Smoke or gas detected in Room 1.'
+                    : 'Smoke or gas detected in Room 1. Auto Mode is OFF.',
+              );
+            }
           }
 
           _lastRain = rain;
+          _lastSmoke = smoke;
 
           print(
             'Firebase Sensor -> '
                 'Temp: $temperature°C, '
                 'Humidity: $humidity%, '
-                'Rain: $rain',
+                'Rain: $rain, '
+                'Smoke: $smoke',
           );
 
           // Update existing UI

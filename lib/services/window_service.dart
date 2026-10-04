@@ -536,4 +536,33 @@ class WindowService {
       return false;
     }
   }
+
+  Future<void> syncSmokeClosedWindow1() async {
+    try {
+      final snapshot = await getUserWindows().first;
+
+      for (final document in snapshot.docs) {
+        final data = document.data();
+
+        final actuatorChannel = data['actuatorChannel'];
+
+        // MQ Room 1 controls Window 1 only
+        if (actuatorChannel == 1) {
+          await document.reference.update({
+            'status': 'CLOSED',
+            'openingPercentage': 0,
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+
+          print(
+            'Smoke auto-close synced to Firestore: ${document.id}',
+          );
+
+          break;
+        }
+      }
+    } catch (e) {
+      print('Smoke Firestore sync failed: $e');
+    }
+  }
 }
