@@ -230,4 +230,52 @@ class Esp32ControlService {
       return false;
     }
   }
+
+  // ============================================================
+  // AUTO MODE
+  // ============================================================
+
+  Future<bool> enableAutoMode() async {
+    try {
+      final response = await http
+          .get(
+        Uri.parse('$_esp32BaseUrl/automode/on'),
+      )
+          .timeout(const Duration(seconds: 5));
+
+      print(
+        'ESP32 AUTO MODE ON response: ${response.statusCode}',
+      );
+      print(
+        'ESP32 AUTO MODE ON body: ${response.body}',
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('ESP32 AUTO MODE ON error: $e');
+      return false;
+    }
+  }
+
+  Future<bool> disableAutoMode() async {
+    try {
+      final response = await http
+          .get(
+        Uri.parse('$_esp32BaseUrl/automode/off'),
+      )
+          .timeout(const Duration(seconds: 5));
+
+      print(
+        'ESP32 AUTO MODE OFF response: ${response.statusCode}',
+      );
+      print(
+        'ESP32 AUTO MODE OFF body: ${response.body}',
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('ESP32 AUTO MODE OFF error: $e');
+      return false;
+    }
+  }
 }

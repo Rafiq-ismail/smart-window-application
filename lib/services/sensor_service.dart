@@ -5,6 +5,7 @@ import 'history_service.dart';
 import 'notification_service.dart';
 import 'settings_service.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'esp32_control_service.dart';
 
 class SensorService {
   static final SensorService instance = SensorService._();
@@ -52,6 +53,9 @@ class SensorService {
 
   bool _lastRain = false;
   bool _lastSmoke = false;
+
+
+
 
   void startFirebaseSensors() {
     print('START FIREBASE SENSOR LISTENER');
@@ -138,6 +142,8 @@ class SensorService {
               rain = rainValue;
             }
           }
+
+
 
           // =========================
           // AUTO WINDOW CONTROL
@@ -322,19 +328,29 @@ class SensorService {
   // AUTO MODE
 
 
-  void setAutoMode(bool value) {
+  Future<void> setAutoMode(bool value) async {
+    bool success;
+
+    if (value) {
+      success =
+      await Esp32ControlService.instance.enableAutoMode();
+    } else {
+      success =
+      await Esp32ControlService.instance.disableAutoMode();
+    }
+
+    if (!success) {
+      print(
+        'AUTO MODE ERROR -> ESP32 did not respond',
+      );
+      return;
+    }
+
     autoMode = value;
 
-    // Immediately apply the current sensor condition
-    if (autoMode) {
-      if (rain || smoke) {
-        windowOpen = false;
-        windowOpening = 0;
-      } else {
-        windowOpen = true;
-        windowOpening = 100;
-      }
-    }
+    print(
+      'AUTO MODE -> ${autoMode ? "ON" : "OFF"}',
+    );
 
     controller.add(null);
   }
