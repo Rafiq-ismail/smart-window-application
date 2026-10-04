@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/window_service.dart';
+import '../../services/esp32_control_service.dart';
 
 import '../notification/notification_page.dart';
 
@@ -41,6 +42,70 @@ class _DashboardPageState extends State<DashboardPage> {
   bool _lastEmergencySmoke = false;
 
   StreamSubscription<void>? _emergencySensorSubscription;
+
+  Future<void> _openAllWindows() async {
+    // Manual command -> disable Auto Mode first
+    await SensorService.instance.setAutoMode(false);
+
+    // Open all 3 physical actuators
+    final window1Success =
+    await Esp32ControlService.instance.openWindow1();
+
+    final window2Success =
+    await Esp32ControlService.instance.openWindow2();
+
+    final window3Success =
+    await Esp32ControlService.instance.openWindow3();
+
+    if (!window1Success ||
+        !window2Success ||
+        !window3Success) {
+      throw Exception('One or more windows failed to open');
+    }
+
+    // Update Firestore after physical movement succeeds
+    final snapshot =
+    await WindowService.instance.getUserWindows().first;
+
+    for (final document in snapshot.docs) {
+      await WindowService.instance.updateWindowState(
+        windowId: document.id,
+        openingPercentage: 100,
+      );
+    }
+  }
+
+  Future<void> _closeAllWindows() async {
+    // Manual command -> disable Auto Mode first
+    await SensorService.instance.setAutoMode(false);
+
+    // Close all 3 physical actuators
+    final window1Success =
+    await Esp32ControlService.instance.closeWindow1();
+
+    final window2Success =
+    await Esp32ControlService.instance.closeWindow2();
+
+    final window3Success =
+    await Esp32ControlService.instance.closeWindow3();
+
+    if (!window1Success ||
+        !window2Success ||
+        !window3Success) {
+      throw Exception('One or more windows failed to close');
+    }
+
+    // Update Firestore after physical movement succeeds
+    final snapshot =
+    await WindowService.instance.getUserWindows().first;
+
+    for (final document in snapshot.docs) {
+      await WindowService.instance.updateWindowState(
+        windowId: document.id,
+        openingPercentage: 0,
+      );
+    }
+  }
 
   @override
   void initState() {
@@ -359,16 +424,28 @@ class _DashboardPageState extends State<DashboardPage> {
                 title: "Open All",
                 icon: Icons.lock_open_rounded,
                 color: AppColors.success,
-                onTap: () {
-                  SensorService.instance.setAutoMode(false);
-                  SensorService.instance.openWindow();
+                onTap: () async {
+                  try {
+                    await _openAllWindows();
 
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("All windows opened"),
-                      duration: Duration(seconds: 1),
-                    ),
-                  );
+                    if (!context.mounted) return;
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("All windows opened"),
+                        duration: Duration(seconds: 1),
+                      ),
+                    );
+                  } catch (e) {
+                    if (!context.mounted) return;
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Failed to open all windows"),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
                 },
               ),
             ),
@@ -380,16 +457,28 @@ class _DashboardPageState extends State<DashboardPage> {
                 title: "Close All",
                 icon: Icons.lock_rounded,
                 color: AppColors.danger,
-                onTap: () {
-                  SensorService.instance.setAutoMode(false);
-                  SensorService.instance.closeWindow();
+                onTap: () async {
+                  try {
+                    await _closeAllWindows();
 
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("All windows closed"),
-                      duration: Duration(seconds: 1),
-                    ),
-                  );
+                    if (!context.mounted) return;
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("All windows closed"),
+                        duration: Duration(seconds: 1),
+                      ),
+                    );
+                  } catch (e) {
+                    if (!context.mounted) return;
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Failed to close all windows"),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
                 },
               ),
             ),
