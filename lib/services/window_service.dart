@@ -236,6 +236,59 @@ class WindowService {
   }
 
   // =========================================================
+// SYNC AUTO-CLOSED WINDOWS TO FIRESTORE
+// =========================================================
+
+  Future<bool> syncAutoClosedWindows() async {
+    final userId = currentUserId;
+
+    if (userId == null) {
+      return false;
+    }
+
+    try {
+      final snapshot = await _firestore
+          .collection('windows')
+          .where(
+        'userId',
+        isEqualTo: userId,
+      )
+          .get();
+
+      if (snapshot.docs.isEmpty) {
+        return true;
+      }
+
+      final batch = _firestore.batch();
+
+      for (final document in snapshot.docs) {
+        batch.update(
+          document.reference,
+          {
+            'openingPercentage': 0,
+            'status': 'CLOSED',
+            'updatedAt': FieldValue.serverTimestamp(),
+          },
+        );
+      }
+
+      await batch.commit();
+
+      print(
+        'RAIN SYNC -> All windows marked CLOSED in Firestore',
+      );
+
+      return true;
+    } catch (e) {
+      print(
+        'Rain Auto Close Firestore Sync Error: $e',
+      );
+
+      return false;
+    }
+  }
+
+  // =========================================================
   // ASSIGN WINDOWS TO ESP32 DEVICE
   // =========================================================
 

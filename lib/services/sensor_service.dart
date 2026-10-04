@@ -6,6 +6,7 @@ import 'notification_service.dart';
 import 'settings_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'esp32_control_service.dart';
+import 'window_service.dart';
 
 class SensorService {
   static final SensorService instance = SensorService._();
@@ -28,6 +29,8 @@ class SensorService {
 
   bool rain = false;
   bool smoke = false;
+
+  bool _lastRainForFirestoreSync = false;
 
   bool windowOpen = true;
   double windowOpening = 100;
@@ -142,6 +145,23 @@ class SensorService {
               rain = rainValue;
             }
           }
+
+          // ============================================================
+// RAIN AUTO-CLOSE -> FIRESTORE SYNC
+// ============================================================
+
+          if (rain &&
+              !_lastRainForFirestoreSync &&
+              autoMode) {
+            print(
+              'RAIN EDGE -> Syncing closed windows to Firestore',
+            );
+
+            WindowService.instance
+                .syncAutoClosedWindows();
+          }
+
+          _lastRainForFirestoreSync = rain;
 
 
 
