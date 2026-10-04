@@ -278,4 +278,32 @@ class Esp32ControlService {
       return false;
     }
   }
+
+  Future<bool?> getAutoModeStatus() async {
+    try {
+      final response = await http
+          .get(Uri.parse('$_esp32BaseUrl/automode/status'))
+          .timeout(const Duration(seconds: 5));
+
+      print('ESP32 AUTO MODE STATUS response: ${response.statusCode}');
+      print('ESP32 AUTO MODE STATUS body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final status = response.body.trim().toUpperCase();
+
+        if (status == 'ON') {
+          return true;
+        }
+
+        if (status == 'OFF') {
+          return false;
+        }
+      }
+
+      return null;
+    } catch (e) {
+      print('ESP32 AUTO MODE STATUS error: $e');
+      return null;
+    }
+  }
 }

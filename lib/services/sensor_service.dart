@@ -40,6 +40,29 @@ class SensorService {
   final StreamController<void> controller =
   StreamController<void>.broadcast();
 
+  Future<void> syncAutoModeFromEsp32() async {
+    print('SYNC AUTO MODE -> Reading ESP32 status...');
+
+    final bool? esp32AutoMode =
+    await Esp32ControlService.instance.getAutoModeStatus();
+
+    if (esp32AutoMode == null) {
+      print(
+        'SYNC AUTO MODE FAILED -> Keeping current state: '
+            '${autoMode ? "ON" : "OFF"}',
+      );
+      return;
+    }
+
+    autoMode = esp32AutoMode;
+
+    print(
+      'SYNC AUTO MODE SUCCESS -> ${autoMode ? "ON" : "OFF"}',
+    );
+
+    controller.add(null);
+  }
+
   Stream<void> get stream => controller.stream;
 
   Timer? _timer;

@@ -25,11 +25,10 @@ Future<void> main() async {
   // Load saved settings
   await SettingsService.instance.loadSettings();
 
-  // Apply saved Auto Mode to Sensor Service
-  SensorService.instance.autoMode =
-      SettingsService.instance.autoMode;
+  // Sync actual Auto Mode state from ESP32
+  await SensorService.instance.syncAutoModeFromEsp32();
 
-
+// Start Firebase sensor listener
   SensorService.instance.startFirebaseSensors();
 
   // Load provider settings
