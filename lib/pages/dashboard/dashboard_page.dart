@@ -399,10 +399,15 @@ class _DashboardPageState extends State<DashboardPage> {
                 title: "Auto Mode",
                 icon: Icons.auto_mode_rounded,
                 color: AppColors.primary,
-                onTap: () {
-                  SensorService.instance.setAutoMode(
-                    !SensorService.instance.autoMode,
+                onTap: () async {
+                  final newValue =
+                  !SensorService.instance.autoMode;
+
+                  await SensorService.instance.setAutoMode(
+                    newValue,
                   );
+
+                  if (!context.mounted) return;
 
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
