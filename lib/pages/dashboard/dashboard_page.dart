@@ -130,7 +130,9 @@ class _DashboardPageState extends State<DashboardPage> {
                     TopNotificationService.show(
                       context: context,
                       title: "Rain Detected",
-                      message: "Window closed automatically.",
+                      message: sensor.autoMode
+                          ? "Windows closed automatically."
+                          : "Auto Mode is off. Windows remain unchanged.",
                       color: Colors.orange,
                       icon: Icons.cloud,
                     );
