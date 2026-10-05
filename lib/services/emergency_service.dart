@@ -66,37 +66,36 @@ class EmergencyService {
     }
 
     try {
-      // Prevent duplicate ACTIVE smoke emergencies.
-      final existing =
-      await _firestore
+      // One active smoke emergency document per user.
+      final emergencyRef = _firestore
           .collection('emergencies')
-          .where(
-        'userId',
-        isEqualTo: user.uid,
-      )
-          .get();
+          .doc('smoke_${user.uid}');
 
-      final alreadyActive = existing.docs.any((doc) {
-        final data = doc.data();
+      final emergencyDoc = await emergencyRef.get();
 
-        return data['alertType'] == 'Smoke Detected' &&
-            data['status'] == 'active';
-      });
+      // Do not create another emergency if one is already active.
+      if (emergencyDoc.exists) {
+        final data = emergencyDoc.data();
 
-      if (alreadyActive) {
-        return true;
+        if (data != null &&
+            data['status'] == 'active') {
+          print(
+            'SMOKE EMERGENCY SKIPPED -> '
+                'Active emergency already exists',
+          );
+
+          return true;
+        }
       }
 
-      await _firestore.collection('emergencies').add({
+      await emergencyRef.set({
         'userId': user.uid,
-
-        // Temporary until dynamic rooms are connected.
         'roomId': null,
         'sensorId': null,
 
         'alertType': 'Smoke Detected',
         'description':
-        'Smoke has been detected by the SmartWindow sensor simulation.',
+        'Smoke or gas has been detected by the Room 1 sensor.',
 
         'status': 'active',
 
@@ -118,9 +117,16 @@ class EmergencyService {
         ],
       });
 
+      print(
+        'SMOKE EMERGENCY CREATED SUCCESSFULLY',
+      );
+
       return true;
     } catch (e) {
-      print('Create Smoke Emergency Error: $e');
+      print(
+        'Create Smoke Emergency Error: $e',
+      );
+
       return false;
     }
   }

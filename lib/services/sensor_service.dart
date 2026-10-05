@@ -7,6 +7,7 @@ import 'settings_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'esp32_control_service.dart';
 import 'window_service.dart';
+import 'emergency_service.dart';
 
 class SensorService {
   static final SensorService instance = SensorService._();
@@ -204,6 +205,28 @@ class SensorService {
             );
 
             WindowService.instance.syncSmokeClosedWindow1();
+          }
+
+          // ============================================================
+// SMOKE -> EMERGENCY
+// ============================================================
+
+// Smoke detected: create one active emergency.
+          if (smoke && !_lastSmoke) {
+            print(
+              'SMOKE EDGE -> Creating emergency',
+            );
+
+            EmergencyService.instance.createSmokeEmergency();
+          }
+
+// Smoke returned to normal: resolve active smoke emergency.
+          if (!smoke && _lastSmoke) {
+            print(
+              'SMOKE SAFE -> Resolving emergency',
+            );
+
+            EmergencyService.instance.resolveActiveSmokeEmergency();
           }
 
 
