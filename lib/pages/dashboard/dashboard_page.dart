@@ -23,8 +23,7 @@ import 'widgets/quick_action_card.dart';
 import 'widgets/statistics_card.dart';
 import 'widgets/activity_card.dart';
 import '../../services/top_notification_service.dart';
-import '../../services/emergency_service.dart';
-import 'dart:async';
+
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -39,9 +38,8 @@ class _DashboardPageState extends State<DashboardPage> {
   bool _lastSmoke = false;
   bool _lastWindow = true;
 
-  bool _lastEmergencySmoke = false;
-
-  StreamSubscription<void>? _emergencySensorSubscription;
+  bool _lastRoom2Smoke = false;
+  bool _lastRoom3Smoke = false;
 
   Future<void> _openAllWindows() async {
     // Manual command -> disable Auto Mode first
@@ -107,43 +105,9 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
 
-    final sensor = SensorService.instance;
 
-    _lastEmergencySmoke = sensor.smoke;
 
-    _emergencySensorSubscription =
-        sensor.stream.listen((_) async {
-
-          final currentSmoke =
-              SensorService.instance.smoke;
-
-          if (currentSmoke &&
-              !_lastEmergencySmoke) {
-
-            await EmergencyService.instance
-                .createSmokeEmergency();
-          }
-
-          if (!currentSmoke &&
-              _lastEmergencySmoke) {
-
-            await EmergencyService.instance
-                .resolveActiveSmokeEmergency();
-          }
-
-          _lastEmergencySmoke = currentSmoke;
-        });
-  }
-
-  @override
-  void dispose() {
-    _emergencySensorSubscription?.cancel();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -205,14 +169,51 @@ class _DashboardPageState extends State<DashboardPage> {
                 }
 
 // Smoke Notification
+                // Room 1 Smoke Notification
                 if (SettingsService.instance.notifications &&
                     sensor.smoke &&
                     !_lastSmoke) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     TopNotificationService.show(
                       context: context,
-                      title: "Smoke Alert",
-                      message: "Smoke detected inside room.",
+                      title: "Smoke Alert - Room 1",
+                      message: sensor.autoMode
+                          ? "Smoke or gas detected in Room 1. Window closed automatically."
+                          : "Smoke or gas detected in Room 1. Auto Mode is off.",
+                      color: Colors.red,
+                      icon: Icons.local_fire_department,
+                    );
+                  });
+                }
+
+// Room 2 Smoke Notification
+                if (SettingsService.instance.notifications &&
+                    sensor.room2Smoke &&
+                    !_lastRoom2Smoke) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    TopNotificationService.show(
+                      context: context,
+                      title: "Smoke Alert - Room 2",
+                      message: sensor.autoMode
+                          ? "Smoke or gas detected in Room 2. Window closed automatically."
+                          : "Smoke or gas detected in Room 2. Auto Mode is off.",
+                      color: Colors.red,
+                      icon: Icons.local_fire_department,
+                    );
+                  });
+                }
+
+// Room 3 Smoke Notification
+                if (SettingsService.instance.notifications &&
+                    sensor.room3Smoke &&
+                    !_lastRoom3Smoke) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    TopNotificationService.show(
+                      context: context,
+                      title: "Smoke Alert - Room 3",
+                      message: sensor.autoMode
+                          ? "Smoke or gas detected in Room 3. Window closed automatically."
+                          : "Smoke or gas detected in Room 3. Auto Mode is off.",
                       color: Colors.red,
                       icon: Icons.local_fire_department,
                     );
@@ -243,6 +244,8 @@ class _DashboardPageState extends State<DashboardPage> {
 
                 _lastRain = sensor.rain;
                 _lastSmoke = sensor.smoke;
+                _lastRoom2Smoke = sensor.room2Smoke;
+                _lastRoom3Smoke = sensor.room3Smoke;
                 _lastWindow = sensor.windowOpen;
 
                 return Column(

@@ -8,6 +8,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'esp32_control_service.dart';
 import 'window_service.dart';
 import 'emergency_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SensorService {
   static final SensorService instance = SensorService._();
@@ -29,7 +30,11 @@ class SensorService {
   double room3Humidity = 65;
 
   bool rain = false;
-  bool smoke = false;
+
+// Smoke / gas sensors
+  bool smoke = false;       // Room 1
+  bool room2Smoke = false;  // Room 2
+  bool room3Smoke = false;  // Room 3
 
   bool _lastRainForFirestoreSync = false;
 
@@ -79,7 +84,14 @@ class SensorService {
   );
 
   bool _lastRain = false;
-  bool _lastSmoke = false;
+
+  bool _lastSmoke = false;       // Room 1
+  bool _lastRoom2Smoke = false;  // Room 2
+  bool _lastRoom3Smoke = false;  // Room 3
+
+  String? _room1EmergencyOwnerUid;
+  String? _room2EmergencyOwnerUid;
+  String? _room3EmergencyOwnerUid;
 
 
 
@@ -123,8 +135,8 @@ class SensorService {
             }
           }
 
-          // =========================
-// ROOM 2 - DHT22
+// =========================
+// ROOM 2 - DHT22 + MQ
 // =========================
 
           final room2 = data['room2'];
@@ -132,6 +144,7 @@ class SensorService {
           if (room2 is Map) {
             final tempValue = room2['temperature'];
             final humidityValue = room2['humidity'];
+            final smokeValue = room2['smokeDetected'];
 
             if (tempValue is num) {
               room2Temperature = tempValue.toDouble();
@@ -140,10 +153,14 @@ class SensorService {
             if (humidityValue is num) {
               room2Humidity = humidityValue.toDouble();
             }
+
+            if (smokeValue is bool) {
+              room2Smoke = smokeValue;
+            }
           }
 
 // =========================
-// ROOM 3 - DHT22
+// ROOM 3 - DHT22 + MQ
 // =========================
 
           final room3 = data['room3'];
@@ -151,6 +168,7 @@ class SensorService {
           if (room3 is Map) {
             final tempValue = room3['temperature'];
             final humidityValue = room3['humidity'];
+            final smokeValue = room3['smokeDetected'];
 
             if (tempValue is num) {
               room3Temperature = tempValue.toDouble();
@@ -158,6 +176,10 @@ class SensorService {
 
             if (humidityValue is num) {
               room3Humidity = humidityValue.toDouble();
+            }
+
+            if (smokeValue is bool) {
+              room3Smoke = smokeValue;
             }
           }
 
@@ -207,30 +229,105 @@ class SensorService {
             WindowService.instance.syncSmokeClosedWindow1();
           }
 
+          // ROOM 2 SMOKE -> FIRESTORE WINDOW 2 CLOSED
+          if (room2Smoke &&
+              !_lastRoom2Smoke &&
+              autoMode) {
+
+            WindowService.instance
+                .syncSmokeClosedWindow2();
+          }
+
+// ROOM 3 SMOKE -> FIRESTORE WINDOW 3 CLOSED
+          if (room3Smoke &&
+              !_lastRoom3Smoke &&
+              autoMode) {
+
+            WindowService.instance
+                .syncSmokeClosedWindow3();
+          }
+
           // ============================================================
-// SMOKE -> EMERGENCY
+// SMOKE -> EMERGENCY (ROOM 1, ROOM 2, ROOM 3)
 // ============================================================
 
-// Smoke detected: create one active emergency.
+// ROOM 1: NORMAL -> DETECTED
           if (smoke && !_lastSmoke) {
-            print(
-              'SMOKE EDGE -> Creating emergency',
-            );
+            print('ROOM 1 SMOKE EDGE -> Creating emergency');
 
-            EmergencyService.instance.createSmokeEmergency();
+            _room1EmergencyOwnerUid =
+                FirebaseAuth.instance.currentUser?.uid;
+
+            EmergencyService.instance.createSmokeEmergency(
+              roomNumber: 1,
+            );
           }
 
-// Smoke returned to normal: resolve active smoke emergency.
+// ROOM 1: DETECTED -> NORMAL
           if (!smoke && _lastSmoke) {
-            print(
-              'SMOKE SAFE -> Resolving emergency',
-            );
+            print('ROOM 1 SMOKE SAFE -> Resolving emergency');
 
-            EmergencyService.instance.resolveActiveSmokeEmergency();
+            final ownerUid = _room1EmergencyOwnerUid;
+
+            if (ownerUid != null) {
+              EmergencyService.instance.resolveActiveSmokeEmergency(
+                roomNumber: 1,
+                ownerUid: ownerUid,
+              );
+            }
           }
 
+// ROOM 2: NORMAL -> DETECTED
+          if (room2Smoke && !_lastRoom2Smoke) {
+            print('ROOM 2 SMOKE EDGE -> Creating emergency');
 
+            _room2EmergencyOwnerUid =
+                FirebaseAuth.instance.currentUser?.uid;
 
+            EmergencyService.instance.createSmokeEmergency(
+              roomNumber: 2,
+            );
+          }
+
+// ROOM 2: DETECTED -> NORMAL
+          if (!room2Smoke && _lastRoom2Smoke) {
+            print('ROOM 2 SMOKE SAFE -> Resolving emergency');
+
+            final ownerUid = _room2EmergencyOwnerUid;
+
+            if (ownerUid != null) {
+              EmergencyService.instance.resolveActiveSmokeEmergency(
+                roomNumber: 2,
+                ownerUid: ownerUid,
+              );
+            }
+          }
+
+// ROOM 3: NORMAL -> DETECTED
+          if (room3Smoke && !_lastRoom3Smoke) {
+            print('ROOM 3 SMOKE EDGE -> Creating emergency');
+
+            _room3EmergencyOwnerUid =
+                FirebaseAuth.instance.currentUser?.uid;
+
+            EmergencyService.instance.createSmokeEmergency(
+              roomNumber: 3,
+            );
+          }
+
+// ROOM 3: DETECTED -> NORMAL
+          if (!room3Smoke && _lastRoom3Smoke) {
+            print('ROOM 3 SMOKE SAFE -> Resolving emergency');
+
+            final ownerUid = _room3EmergencyOwnerUid;
+
+            if (ownerUid != null) {
+              EmergencyService.instance.resolveActiveSmokeEmergency(
+                roomNumber: 3,
+                ownerUid: ownerUid,
+              );
+            }
+          }
           // =========================
           // AUTO WINDOW CONTROL
           // =========================
@@ -281,14 +378,17 @@ class SensorService {
           }
 
           _lastRain = rain;
+
           _lastSmoke = smoke;
+          _lastRoom2Smoke = room2Smoke;
+          _lastRoom3Smoke = room3Smoke;
 
           print(
             'Firebase Sensor -> '
-                'Temp: $temperature°C, '
-                'Humidity: $humidity%, '
-                'Rain: $rain, '
-                'Smoke: $smoke',
+                'R1 Smoke: $smoke, '
+                'R2 Smoke: $room2Smoke, '
+                'R3 Smoke: $room3Smoke, '
+                'Rain: $rain',
           );
 
           // Update existing UI

@@ -58,7 +58,9 @@ class EmergencyService {
   // Called when smoke changes FALSE -> TRUE
   // =========================================================
 
-  Future<bool> createSmokeEmergency() async {
+  Future<bool> createSmokeEmergency({
+    required int roomNumber,
+  }) async {
     final user = _auth.currentUser;
 
     if (user == null) {
@@ -66,65 +68,42 @@ class EmergencyService {
     }
 
     try {
-      // One active smoke emergency document per user.
+      final String roomKey = 'room$roomNumber';
+
       final emergencyRef = _firestore
           .collection('emergencies')
-          .doc('smoke_${user.uid}');
-
-      final emergencyDoc = await emergencyRef.get();
-
-      // Do not create another emergency if one is already active.
-      if (emergencyDoc.exists) {
-        final data = emergencyDoc.data();
-
-        if (data != null &&
-            data['status'] == 'active') {
-          print(
-            'SMOKE EMERGENCY SKIPPED -> '
-                'Active emergency already exists',
-          );
-
-          return true;
-        }
-      }
+          .doc('smoke_${user.uid}_$roomKey');
 
       await emergencyRef.set({
         'userId': user.uid,
-        'roomId': null,
-        'sensorId': null,
-
+        'roomId': roomKey,
+        'sensorId': 'mq$roomNumber',
         'alertType': 'Smoke Detected',
         'description':
-        'Smoke or gas has been detected by the Room 1 sensor.',
-
+        'Smoke or gas has been detected by the Room $roomNumber sensor.',
         'status': 'active',
-
         'acknowledged': false,
         'acknowledgedAt': null,
-
-        'triggeredAt':
-        FieldValue.serverTimestamp(),
-
+        'triggeredAt': FieldValue.serverTimestamp(),
         'resolvedAt': null,
-
         'responseLogs': [
           {
             'time': Timestamp.now(),
             'action':
-            'Smoke detected automatically by system',
+            'Smoke detected automatically in Room $roomNumber',
             'performedBy': 'system',
           },
         ],
       });
 
       print(
-        'SMOKE EMERGENCY CREATED SUCCESSFULLY',
+        'ROOM $roomNumber SMOKE EMERGENCY CREATED SUCCESSFULLY',
       );
 
       return true;
     } catch (e) {
       print(
-        'Create Smoke Emergency Error: $e',
+        'Create Room $roomNumber Smoke Emergency Error: $e',
       );
 
       return false;
@@ -136,7 +115,10 @@ class EmergencyService {
   // Called when smoke changes TRUE -> FALSE
   // =========================================================
 
-  Future<bool> resolveActiveSmokeEmergency() async {
+  Future<bool> resolveActiveSmokeEmergency({
+    required int roomNumber,
+    required String ownerUid,
+  }) async {
     final user = _auth.currentUser;
 
     if (user == null) {
@@ -144,48 +126,53 @@ class EmergencyService {
     }
 
     try {
-      final query =
-      await _firestore
+      final String roomKey = 'room$roomNumber';
+
+      final emergencyRef = _firestore
           .collection('emergencies')
-          .where(
-        'userId',
-        isEqualTo: user.uid,
-      )
-          .get();
+          .doc('smoke_${ownerUid}_$roomKey');
 
-      final activeSmokeEmergencies =
-      query.docs.where((doc) {
-        final data = doc.data();
+      final emergencyDoc = await emergencyRef.get();
 
-        return data['alertType'] == 'Smoke Detected' &&
-            data['status'] == 'active';
-      }).toList();
-
-      if (activeSmokeEmergencies.isEmpty) {
+      if (!emergencyDoc.exists) {
+        print(
+          'Room $roomNumber emergency not found for owner $ownerUid',
+        );
         return true;
       }
 
-      for (final document
-      in activeSmokeEmergencies) {
-        await document.reference.update({
-          'status': 'resolved',
-          'resolvedAt':
-          FieldValue.serverTimestamp(),
-          'responseLogs':
-          FieldValue.arrayUnion([
-            {
-              'time': Timestamp.now(),
-              'action':
-              'Smoke condition returned to normal',
-              'performedBy': 'system',
-            },
-          ]),
-        });
+      final data = emergencyDoc.data();
+
+      if (data == null || data['status'] != 'active') {
+        print(
+          'Room $roomNumber emergency is not active',
+        );
+        return true;
       }
+
+      await emergencyRef.update({
+        'status': 'resolved',
+        'resolvedAt': FieldValue.serverTimestamp(),
+        'responseLogs': FieldValue.arrayUnion([
+          {
+            'time': Timestamp.now(),
+            'action':
+            'Smoke condition in Room $roomNumber returned to normal',
+            'performedBy': 'system',
+          },
+        ]),
+      });
+
+      print(
+        'ROOM $roomNumber SMOKE EMERGENCY RESOLVED: ${emergencyRef.id}',
+      );
 
       return true;
     } catch (e) {
-      print('Resolve Smoke Emergency Error: $e');
+      print(
+        'Resolve Room $roomNumber Smoke Emergency Error: $e',
+      );
+
       return false;
     }
   }

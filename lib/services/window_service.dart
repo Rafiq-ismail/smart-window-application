@@ -565,4 +565,63 @@ class WindowService {
       print('Smoke Firestore sync failed: $e');
     }
   }
+
+  Future<void> syncSmokeClosedWindow2() async {
+    try {
+      final snapshot = await getUserWindows().first;
+
+      for (final document in snapshot.docs) {
+        final data = document.data();
+
+        final actuatorChannel = data['actuatorChannel'];
+
+        // MQ Room 2 controls Window 2 only
+        if (actuatorChannel == 2) {
+          await document.reference.update({
+            'status': 'CLOSED',
+            'openingPercentage': 0,
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+
+          print(
+            'Room 2 smoke auto-close synced to Firestore: ${document.id}',
+          );
+
+          break;
+        }
+      }
+    } catch (e) {
+      print('Room 2 smoke Firestore sync failed: $e');
+    }
+  }
+
+  Future<void> syncSmokeClosedWindow3() async {
+    try {
+      final snapshot = await getUserWindows().first;
+
+      for (final document in snapshot.docs) {
+        final data = document.data();
+
+        final actuatorChannel = data['actuatorChannel'];
+
+        // MQ Room 3 controls Window 3 only
+        if (actuatorChannel == 3) {
+          await document.reference.update({
+            'status': 'CLOSED',
+            'openingPercentage': 0,
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+
+          print(
+            'Room 3 smoke auto-close synced to Firestore: ${document.id}',
+          );
+
+          break;
+        }
+      }
+    } catch (e) {
+      print('Room 3 smoke Firestore sync failed: $e');
+    }
+  }
+
 }
