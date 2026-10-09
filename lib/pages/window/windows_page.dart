@@ -624,6 +624,15 @@ class WindowsPage extends StatelessWidget {
                               ? 'WINDOW 3 CLOSE -> ESP32 SUCCESS'
                               : 'WINDOW 3 CLOSE -> ESP32 FAILED',
                         );
+                      } else if (actuatorChannel == 4) {
+                        esp32Success =
+                        await Esp32ControlService.instance.closeStepperWindow();
+
+                        print(
+                          esp32Success
+                              ? 'STEPPER WINDOW CLOSE -> ESP32 SUCCESS'
+                              : 'STEPPER WINDOW CLOSE -> ESP32 FAILED',
+                        );
                       } else {
                         print(
                           'ESP32 CLOSE FAILED: Invalid actuatorChannel $actuatorChannel',
@@ -698,6 +707,15 @@ class WindowsPage extends StatelessWidget {
                           esp32Success
                               ? 'WINDOW 3 OPEN -> ESP32 SUCCESS'
                               : 'WINDOW 3 OPEN -> ESP32 FAILED',
+                        );
+                      } else if (actuatorChannel == 4) {
+                        esp32Success =
+                        await Esp32ControlService.instance.openStepperWindow();
+
+                        print(
+                          esp32Success
+                              ? 'STEPPER WINDOW OPEN -> ESP32 SUCCESS'
+                              : 'STEPPER WINDOW OPEN -> ESP32 FAILED',
                         );
                       } else {
                         print(

@@ -232,6 +232,54 @@ class Esp32ControlService {
   }
 
   // ============================================================
+// STEPPER SLIDING WINDOW
+// ============================================================
+
+  Future<bool> openStepperWindow() async {
+    try {
+      final response = await http
+          .get(
+        Uri.parse('$_esp32BaseUrl/stepper/open'),
+      )
+          .timeout(const Duration(seconds: 5));
+
+      print(
+        'ESP32 STEPPER OPEN response: ${response.statusCode}',
+      );
+      print(
+        'ESP32 STEPPER OPEN body: ${response.body}',
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('ESP32 STEPPER OPEN error: $e');
+      return false;
+    }
+  }
+
+  Future<bool> closeStepperWindow() async {
+    try {
+      final response = await http
+          .get(
+        Uri.parse('$_esp32BaseUrl/stepper/close'),
+      )
+          .timeout(const Duration(seconds: 5));
+
+      print(
+        'ESP32 STEPPER CLOSE response: ${response.statusCode}',
+      );
+      print(
+        'ESP32 STEPPER CLOSE body: ${response.body}',
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('ESP32 STEPPER CLOSE error: $e');
+      return false;
+    }
+  }
+
+  // ============================================================
   // AUTO MODE
   // ============================================================
 
