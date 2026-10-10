@@ -89,6 +89,12 @@ class SensorService {
   bool _lastRoom2Smoke = false;  // Room 2
   bool _lastRoom3Smoke = false;  // Room 3
 
+  bool _lastRoom1HighTemperature = false;
+  bool _lastRoom2HighTemperature = false;
+  bool _lastRoom3HighTemperature = false;
+
+  static const double highTemperatureThreshold = 33.0;
+
   String? _room1EmergencyOwnerUid;
   String? _room2EmergencyOwnerUid;
   String? _room3EmergencyOwnerUid;
@@ -248,6 +254,61 @@ class SensorService {
           }
 
           // ============================================================
+// HIGH TEMPERATURE AUTO-OPEN -> FIRESTORE SYNC
+// ============================================================
+
+          final bool room1HighTemperature =
+              temperature >= highTemperatureThreshold;
+
+          final bool room2HighTemperature =
+              room2Temperature >= highTemperatureThreshold;
+
+          final bool room3HighTemperature =
+              room3Temperature >= highTemperatureThreshold;
+
+// ROOM 1 TEMPERATURE -> WINDOW 1 OPEN
+          if (room1HighTemperature &&
+              !_lastRoom1HighTemperature &&
+              autoMode &&
+              !rain &&
+              !smoke) {
+            print(
+              'ROOM 1 HIGH TEMP EDGE -> Syncing Window 1 open to Firestore',
+            );
+
+            WindowService.instance
+                .syncTemperatureOpenedWindow(1);
+          }
+
+// ROOM 2 TEMPERATURE -> WINDOW 2 OPEN
+          if (room2HighTemperature &&
+              !_lastRoom2HighTemperature &&
+              autoMode &&
+              !rain &&
+              !room2Smoke) {
+            print(
+              'ROOM 2 HIGH TEMP EDGE -> Syncing Window 2 open to Firestore',
+            );
+
+            WindowService.instance
+                .syncTemperatureOpenedWindow(2);
+          }
+
+// ROOM 3 TEMPERATURE -> WINDOW 3 OPEN
+          if (room3HighTemperature &&
+              !_lastRoom3HighTemperature &&
+              autoMode &&
+              !rain &&
+              !room3Smoke) {
+            print(
+              'ROOM 3 HIGH TEMP EDGE -> Syncing Window 3 open to Firestore',
+            );
+
+            WindowService.instance
+                .syncTemperatureOpenedWindow(3);
+          }
+
+          // ============================================================
 // SMOKE -> EMERGENCY (ROOM 1, ROOM 2, ROOM 3)
 // ============================================================
 
@@ -382,6 +443,10 @@ class SensorService {
           _lastSmoke = smoke;
           _lastRoom2Smoke = room2Smoke;
           _lastRoom3Smoke = room3Smoke;
+
+          _lastRoom1HighTemperature = room1HighTemperature;
+          _lastRoom2HighTemperature = room2HighTemperature;
+          _lastRoom3HighTemperature = room3HighTemperature;
 
           print(
             'Firebase Sensor -> '

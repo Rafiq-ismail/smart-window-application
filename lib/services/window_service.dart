@@ -624,4 +624,40 @@ class WindowService {
     }
   }
 
+  // =========================================================
+// TEMPERATURE AUTO-OPEN -> FIRESTORE SYNC
+// =========================================================
+
+  Future<void> syncTemperatureOpenedWindow(int actuatorChannel) async {
+    try {
+      final snapshot = await getUserWindows().first;
+
+      for (final document in snapshot.docs) {
+        final data = document.data();
+
+        final channel = data['actuatorChannel'];
+
+        if (channel == actuatorChannel) {
+          await document.reference.update({
+            'status': 'OPEN',
+            'openingPercentage': 100,
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+
+          print(
+            'Temperature auto-open synced to Firestore: '
+                'Channel $actuatorChannel -> ${document.id}',
+          );
+
+          break;
+        }
+      }
+    } catch (e) {
+      print(
+        'Temperature auto-open Firestore sync failed '
+            'for channel $actuatorChannel: $e',
+      );
+    }
+  }
+
 }
