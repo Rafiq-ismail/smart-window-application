@@ -184,7 +184,7 @@ class _ControlPageState extends State<ControlPage> {
                             onPressed: () async {
                               if (widget.windowId.isEmpty ||
                                   widget.actuatorChannel < 1 ||
-                                  widget.actuatorChannel > 3) {
+                                  widget.actuatorChannel > 4) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text(
@@ -211,6 +211,11 @@ class _ControlPageState extends State<ControlPage> {
                                 case 3:
                                   success = await Esp32ControlService.instance
                                       .openWindow3();
+                                  break;
+
+                                case 4:
+                                  success = await Esp32ControlService.instance
+                                      .openStepperWindow();
                                   break;
                               }
 
@@ -251,7 +256,7 @@ class _ControlPageState extends State<ControlPage> {
                             onPressed: () async {
                               if (widget.windowId.isEmpty ||
                                   widget.actuatorChannel < 1 ||
-                                  widget.actuatorChannel > 3) {
+                                  widget.actuatorChannel > 4) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text(
@@ -278,6 +283,11 @@ class _ControlPageState extends State<ControlPage> {
                                 case 3:
                                   success = await Esp32ControlService.instance
                                       .closeWindow3();
+                                  break;
+
+                                case 4:
+                                  success = await Esp32ControlService.instance
+                                      .closeStepperWindow();
                                   break;
                               }
 

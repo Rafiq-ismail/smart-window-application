@@ -55,9 +55,13 @@ class _DashboardPageState extends State<DashboardPage> {
     final window3Success =
     await Esp32ControlService.instance.openWindow3();
 
+    final stepperSuccess =
+    await Esp32ControlService.instance.openStepperWindow();
+
     if (!window1Success ||
         !window2Success ||
-        !window3Success) {
+        !window3Success ||
+        !stepperSuccess) {
       throw Exception('One or more windows failed to open');
     }
 
@@ -87,9 +91,13 @@ class _DashboardPageState extends State<DashboardPage> {
     final window3Success =
     await Esp32ControlService.instance.closeWindow3();
 
+    final stepperSuccess =
+    await Esp32ControlService.instance.closeStepperWindow();
+
     if (!window1Success ||
         !window2Success ||
-        !window3Success) {
+        !window3Success ||
+        !stepperSuccess) {
       throw Exception('One or more windows failed to close');
     }
 
