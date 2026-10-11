@@ -15,8 +15,7 @@
 // WIFI SETTINGS
 // ======================================================
 
-const char* WIFI_SSID = "A16";
-const char* WIFI_PASSWORD = "123123123";
+
 
 const char* FIREBASE_URL =
   "https://smartwindow-131e5-default-rtdb.asia-southeast1.firebasedatabase.app";
@@ -81,7 +80,7 @@ DHT dht4(DHT4_PIN, DHTTYPE);
 #define DIR_PIN 18
 
 int stepperSteps = 200;
-int stepDelay = 1500;
+int stepDelay = 3000;
 
 // ======================================================
 // ACTUATOR SETTINGS
@@ -769,7 +768,7 @@ void showSensors() {
   float h3 = dht3.readHumidity();
 
   float t4 = dht4.readTemperature();
-  float h4 = dht4.readHumidity();
+float h4 = dht4.readHumidity();
 
   int rainState = digitalRead(RAIN_PIN);
 
@@ -840,27 +839,25 @@ void showSensors() {
 
   Serial.println("------------------------------");
 
-Serial.println("------------------------------");
+    Serial.println("ROOM 4");
 
-Serial.println("ROOM 4");
+  if (isnan(t4) || isnan(h4)) {
 
-if (isnan(t4) || isnan(h4)) {
+    Serial.println("DHT22 ERROR");
+  }
 
-  Serial.println("DHT22 ERROR");
-}
+  else {
 
-else {
+    Serial.print("Temperature: ");
+    Serial.print(t4, 1);
+    Serial.println(" C");
 
-  Serial.print("Temperature: ");
-  Serial.print(t4, 1);
-  Serial.println(" C");
+    Serial.print("Humidity: ");
+    Serial.print(h4, 1);
+    Serial.println(" %");
+  }
 
-  Serial.print("Humidity: ");
-  Serial.print(h4, 1);
-  Serial.println(" %");
-}
-
-Serial.println("------------------------------");
+  Serial.println("------------------------------");
 
   if (rainState == LOW) {
 
@@ -973,7 +970,6 @@ void firebaseTask(void *parameter) {
 int mq1State = digitalRead(MQ1_PIN);
 int mq2State = digitalRead(MQ2_PIN);
 int mq3State = digitalRead(MQ3_PIN);
-int mq4State = digitalRead(MQ4_PIN);
 
 // MQ sensors active LOW:
 // LOW  = detected
@@ -1007,7 +1003,27 @@ sendAllSensorsToFirebase(
 }
 
 void handleStepperOpen() {
+
   Serial.println("HTTP -> STEPPER SLIDING WINDOW OPEN");
+
+  bool rainDetected = (digitalRead(RAIN_PIN) == LOW);
+  bool smokeDetected = (digitalRead(MQ3_PIN) == LOW);
+
+  // Safety priority while Auto Mode is active
+  if (autoModeEnabled && (rainDetected || smokeDetected)) {
+
+    Serial.println(
+      "WINDOW 4 OPEN BLOCKED -> RAIN/MQ3 SMOKE SAFETY ACTIVE"
+    );
+
+    server.send(
+      409,
+      "application/json",
+      "{\"success\":false,\"message\":\"Window 4 Open Blocked - Rain/Smoke Safety Active\"}"
+    );
+
+    return;
+  }
 
   moveStepper(HIGH, stepperSteps);
 
@@ -1206,7 +1222,13 @@ if (currentRainState && !lastRainState && autoModeEnabled) {
   actuatorRetract(A3_RPWM, A3_LPWM);
   window3Position = 0;
 
+    // Window 4 - Stepper
+Serial.println("AUTO CLOSE -> WINDOW 4 STEPPER");
+moveStepper(LOW, stepperSteps);
+
   Serial.println("RAIN AUTO CLOSE COMPLETE");
+
+
 }
 
 lastRainState = currentRainState;
@@ -1290,12 +1312,16 @@ if (currentSmokeState3 && !lastSmokeState3 && autoModeEnabled) {
   Serial.println("SMOKE/GAS ROOM 3 -> AUTO CLOSE");
   Serial.println("================================");
 
-  Serial.println("AUTO CLOSE -> WINDOW 3");
+Serial.println("AUTO CLOSE -> WINDOW 3");
 
-  actuatorRetract(A3_RPWM, A3_LPWM);
-  window3Position = 0;
+actuatorRetract(A3_RPWM, A3_LPWM);
+window3Position = 0;
 
-  Serial.println("ROOM 3 SMOKE AUTO CLOSE COMPLETE");
+Serial.println("AUTO CLOSE -> WINDOW 4 STEPPER");
+
+moveStepper(LOW, stepperSteps);
+
+Serial.println("ROOM 3 SMOKE AUTO CLOSE W3 + W4 COMPLETE");
 }
 
 // Save current state for edge detection
@@ -1410,14 +1436,22 @@ if (millis() - lastTemperatureCheck >= 5000) {
     ) {
 
       Serial.println();
-      Serial.println("HIGH TEMPERATURE ROOM 3 -> AUTO OPEN W3");
+     Serial.println("HIGH TEMPERATURE ROOM 3 -> AUTO OPEN W3 + W4");
 
-      actuatorExtend(A3_RPWM, A3_LPWM);
-      window3Position = 100;
+// Window 3 - Linear Actuator
+Serial.println("AUTO OPEN -> WINDOW 3");
 
-      highTemperatureTriggered3 = true;
+actuatorExtend(A3_RPWM, A3_LPWM);
+window3Position = 100;
 
-      Serial.println("WINDOW 3 TEMPERATURE AUTO OPEN COMPLETE");
+// Window 4 - Stepper
+Serial.println("AUTO OPEN -> WINDOW 4 STEPPER");
+
+moveStepper(HIGH, stepperSteps);
+
+highTemperatureTriggered3 = true;
+
+Serial.println("WINDOW 3 + WINDOW 4 TEMPERATURE AUTO OPEN COMPLETE");
     }
   }
 }
@@ -1480,6 +1514,7 @@ if (command == "DATA") {
 int mq1State = digitalRead(MQ1_PIN);
 int mq2State = digitalRead(MQ2_PIN);
 int mq3State = digitalRead(MQ3_PIN);
+
 
 // MQ sensors active LOW:
 // LOW  = detected
@@ -1673,6 +1708,7 @@ int mq1State = digitalRead(MQ1_PIN);
 int mq2State = digitalRead(MQ2_PIN);
 int mq3State = digitalRead(MQ3_PIN);
 
+
 Serial.print("MQ Room 1: ");
 Serial.print(mq1State);
 
@@ -1680,10 +1716,9 @@ Serial.print(" | MQ Room 2: ");
 Serial.print(mq2State);
 
 Serial.print(" | MQ Room 3: ");
-Serial.println(mq3State);
+Serial.print(mq3State);
 
-Serial.print(" | MQ Room 4: ");
-Serial.println(mq4State);
+
 
 delay(1000);
 }
