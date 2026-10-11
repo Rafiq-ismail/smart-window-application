@@ -294,18 +294,21 @@ class SensorService {
                 .syncTemperatureOpenedWindow(2);
           }
 
-// ROOM 3 TEMPERATURE -> WINDOW 3 OPEN
+// ROOM 3 TEMPERATURE -> WINDOW 3 + WINDOW 4 OPEN
           if (room3HighTemperature &&
               !_lastRoom3HighTemperature &&
               autoMode &&
               !rain &&
               !room3Smoke) {
             print(
-              'ROOM 3 HIGH TEMP EDGE -> Syncing Window 3 open to Firestore',
+              'ROOM 3 HIGH TEMP EDGE -> Syncing Window 3 + Window 4 open to Firestore',
             );
 
             WindowService.instance
                 .syncTemperatureOpenedWindow(3);
+
+            WindowService.instance
+                .syncTemperatureOpenedWindow(4);
           }
 
           // ============================================================

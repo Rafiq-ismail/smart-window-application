@@ -604,8 +604,8 @@ class WindowService {
 
         final actuatorChannel = data['actuatorChannel'];
 
-        // MQ Room 3 controls Window 3 only
-        if (actuatorChannel == 3) {
+        // MQ Room 3 controls Window 3 + Window 4
+        if (actuatorChannel == 3 || actuatorChannel == 4) {
           await document.reference.update({
             'status': 'CLOSED',
             'openingPercentage': 0,
@@ -613,10 +613,9 @@ class WindowService {
           });
 
           print(
-            'Room 3 smoke auto-close synced to Firestore: ${document.id}',
+            'Room 3 smoke auto-close synced to Firestore: '
+                'Channel $actuatorChannel -> ${document.id}',
           );
-
-          break;
         }
       }
     } catch (e) {
