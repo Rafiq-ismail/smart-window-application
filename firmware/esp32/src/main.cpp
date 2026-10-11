@@ -8,6 +8,7 @@
 #define MQ1_PIN 34
 #define MQ2_PIN 35
 #define MQ3_PIN 32
+#define MQ4_PIN 36
 #define HIGH_TEMP_THRESHOLD 33.0
 
 // ======================================================
@@ -35,10 +36,12 @@ WebServer server(80);
 #define DHT1_PIN 4
 #define DHT2_PIN 5
 #define DHT3_PIN 26
+#define DHT4_PIN 14
 
 DHT dht1(DHT1_PIN, DHTTYPE);
 DHT dht2(DHT2_PIN, DHTTYPE);
 DHT dht3(DHT3_PIN, DHTTYPE);
+DHT dht4(DHT4_PIN, DHTTYPE);
 
 // ======================================================
 // RAIN SENSOR
@@ -765,6 +768,9 @@ void showSensors() {
   float t3 = dht3.readTemperature();
   float h3 = dht3.readHumidity();
 
+  float t4 = dht4.readTemperature();
+  float h4 = dht4.readHumidity();
+
   int rainState = digitalRead(RAIN_PIN);
 
 
@@ -833,6 +839,28 @@ void showSensors() {
   }
 
   Serial.println("------------------------------");
+
+Serial.println("------------------------------");
+
+Serial.println("ROOM 4");
+
+if (isnan(t4) || isnan(h4)) {
+
+  Serial.println("DHT22 ERROR");
+}
+
+else {
+
+  Serial.print("Temperature: ");
+  Serial.print(t4, 1);
+  Serial.println(" C");
+
+  Serial.print("Humidity: ");
+  Serial.print(h4, 1);
+  Serial.println(" %");
+}
+
+Serial.println("------------------------------");
 
   if (rainState == LOW) {
 
@@ -945,6 +973,7 @@ void firebaseTask(void *parameter) {
 int mq1State = digitalRead(MQ1_PIN);
 int mq2State = digitalRead(MQ2_PIN);
 int mq3State = digitalRead(MQ3_PIN);
+int mq4State = digitalRead(MQ4_PIN);
 
 // MQ sensors active LOW:
 // LOW  = detected
@@ -1020,6 +1049,7 @@ void setup() {
   dht1.begin();
   dht2.begin();
   dht3.begin();
+  dht4.begin();
 
   pinMode(RAIN_PIN, INPUT);
 
@@ -1028,10 +1058,12 @@ void setup() {
 pinMode(MQ1_PIN, INPUT);
 pinMode(MQ2_PIN, INPUT);
 pinMode(MQ3_PIN, INPUT);
+pinMode(MQ4_PIN, INPUT);
 
 Serial.println("MQ-135 ROOM 1 READY");
 Serial.println("MQ-135 ROOM 2 READY");
 Serial.println("MQ-135 ROOM 3 READY");
+Serial.println("MQ-135 ROOM 4 READY");
 
   // ---------------- ACTUATORS ----------------
 
@@ -1649,6 +1681,9 @@ Serial.print(mq2State);
 
 Serial.print(" | MQ Room 3: ");
 Serial.println(mq3State);
+
+Serial.print(" | MQ Room 4: ");
+Serial.println(mq4State);
 
 delay(1000);
 }
