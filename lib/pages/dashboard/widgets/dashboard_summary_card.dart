@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../services/sensor_service.dart';
 
 class DashboardSummaryCard extends StatelessWidget {
@@ -6,90 +7,172 @@ class DashboardSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
     return StreamBuilder(
       stream: SensorService.instance.stream,
       builder: (context, snapshot) {
-        return Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+
+          decoration: BoxDecoration(
+            color: colors.surface,
+            borderRadius: BorderRadius.circular(22),
+
+            border: Border.all(
+              color: colors.outlineVariant,
+            ),
+
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(
+                  alpha: isDark ? 0.12 : 0.035,
+                ),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                const Row(
-                  children: [
-                    Icon(
-                      Icons.dashboard,
-                      color: Colors.indigo,
+
+          child: Column(
+            children: [
+              // HEADER
+              Row(
+                children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+
+                    decoration: BoxDecoration(
+                      color: colors.primaryContainer,
+                      borderRadius: BorderRadius.circular(13),
                     ),
-                    SizedBox(width: 10),
-                    Text(
+
+                    child: Icon(
+                      Icons.dashboard_rounded,
+                      color: colors.primary,
+                      size: 22,
+                    ),
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  Expanded(
+                    child: Text(
                       "System Summary",
                       style: TextStyle(
+                        color: colors.onSurface,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
+              ),
 
-                const SizedBox(height: 20),
+              const SizedBox(height: 22),
 
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-
-                    summaryItem(
-                      Icons.thermostat,
+              // SUMMARY VALUES
+              Row(
+                children: [
+                  Expanded(
+                    child: _SummaryItem(
+                      icon: Icons.thermostat_rounded,
+                      value:
                       "${SensorService.instance.temperature.toStringAsFixed(1)}°C",
-                      "Temp",
-                      Colors.orange,
+                      label: "Temp",
+                      color: Colors.orange,
                     ),
+                  ),
 
-                    summaryItem(
-                      Icons.water_drop,
+                  Container(
+                    width: 1,
+                    height: 65,
+                    color: colors.outlineVariant,
+                  ),
+
+                  Expanded(
+                    child: _SummaryItem(
+                      icon: Icons.water_drop_rounded,
+                      value:
                       "${SensorService.instance.humidity.toStringAsFixed(0)}%",
-                      "Humidity",
-                      Colors.blue,
+                      label: "Humidity",
+                      color: Colors.blue,
                     ),
+                  ),
 
-                    summaryItem(
-                      Icons.window,
+                  Container(
+                    width: 1,
+                    height: 65,
+                    color: colors.outlineVariant,
+                  ),
+
+                  Expanded(
+                    child: _SummaryItem(
+                      icon: Icons.window_rounded,
+                      value:
                       SensorService.instance.windowOpen
                           ? "OPEN"
                           : "CLOSED",
-                      "Window",
+                      label: "Window",
+                      color:
                       SensorService.instance.windowOpen
                           ? Colors.green
                           : Colors.red,
                     ),
-
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                ],
+              ),
+            ],
           ),
         );
       },
     );
   }
+}
 
-  Widget summaryItem(
-      IconData icon,
-      String value,
-      String label,
-      Color color,
-      ) {
+
+// SUMMARY ITEM
+
+class _SummaryItem extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final String label;
+  final Color color;
+
+  const _SummaryItem({
+    required this.icon,
+    required this.value,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       children: [
-        CircleAvatar(
-          radius: 24,
-          backgroundColor: color.withValues(alpha: 0.15),
+        Container(
+          width: 48,
+          height: 48,
+
+          decoration: BoxDecoration(
+            color: color.withValues(
+              alpha: isDark ? 0.14 : 0.12,
+            ),
+            borderRadius: BorderRadius.circular(15),
+          ),
+
           child: Icon(
             icon,
             color: color,
+            size: 23,
           ),
         ),
 
@@ -97,12 +180,24 @@ class DashboardSummaryCard extends StatelessWidget {
 
         Text(
           value,
-          style: const TextStyle(
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: colors.onSurface,
+            fontSize: 14,
             fontWeight: FontWeight.bold,
           ),
         ),
 
-        Text(label),
+        const SizedBox(height: 2),
+
+        Text(
+          label,
+          style: TextStyle(
+            color: colors.onSurfaceVariant,
+            fontSize: 12,
+          ),
+        ),
       ],
     );
   }

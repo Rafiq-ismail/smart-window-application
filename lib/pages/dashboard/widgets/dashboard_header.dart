@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/app_colors.dart';
 import '../../../services/auth_service.dart';
 
 class DashboardHeader extends StatefulWidget {
@@ -31,27 +30,45 @@ class _DashboardHeaderState extends State<DashboardHeader> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
+    final headerColor = isDark
+        ? colors.surface
+        : colors.primary;
+
+    final borderColor = isDark
+        ? colors.outlineVariant
+        : Colors.white.withValues(alpha: 0.10);
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
+
       decoration: BoxDecoration(
-        color: AppColors.primary,
+        color: headerColor,
         borderRadius: BorderRadius.circular(26),
+
+        border: Border.all(
+          color: borderColor,
+        ),
+
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.18),
+            color: Colors.black.withValues(
+              alpha: isDark ? 0.12 : 0.08,
+            ),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
         ],
       ),
+
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           // TOP ROW
-
-
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -60,10 +77,12 @@ class _DashboardHeaderState extends State<DashboardHeader> {
                   crossAxisAlignment:
                   CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       "Good Evening 👋",
                       style: TextStyle(
-                        color: Colors.white70,
+                        color: isDark
+                            ? colors.onSurfaceVariant
+                            : Colors.white70,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
@@ -75,8 +94,10 @@ class _DashboardHeaderState extends State<DashboardHeader> {
                       userName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: isDark
+                            ? colors.onSurface
+                            : Colors.white,
                         fontSize: 25,
                         fontWeight: FontWeight.bold,
                       ),
@@ -84,10 +105,12 @@ class _DashboardHeaderState extends State<DashboardHeader> {
 
                     const SizedBox(height: 5),
 
-                    const Text(
+                    Text(
                       "Smart Window System",
                       style: TextStyle(
-                        color: Colors.white70,
+                        color: isDark
+                            ? colors.onSurfaceVariant
+                            : Colors.white70,
                         fontSize: 13,
                       ),
                     ),
@@ -95,34 +118,43 @@ class _DashboardHeaderState extends State<DashboardHeader> {
                 ),
               ),
 
-
               // ONLINE INDICATOR
-
-
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 11,
                   vertical: 8,
                 ),
+
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(
-                    alpha: 0.14,
-                  ),
+                  color: isDark
+                      ? colors.primaryContainer
+                      : Colors.white.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(30),
+
+                  border: Border.all(
+                    color: isDark
+                        ? colors.outlineVariant
+                        : Colors.white.withValues(alpha: 0.10),
+                  ),
                 ),
-                child: const Row(
+
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.circle,
                       size: 9,
                       color: Colors.greenAccent,
                     ),
-                    SizedBox(width: 6),
+
+                    const SizedBox(width: 6),
+
                     Text(
                       "Online",
                       style: TextStyle(
-                        color: Colors.white,
+                        color: isDark
+                            ? colors.onPrimaryContainer
+                            : Colors.white,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
@@ -135,47 +167,62 @@ class _DashboardHeaderState extends State<DashboardHeader> {
 
           const SizedBox(height: 25),
 
-
           // STATS
-
-
           Container(
             padding: const EdgeInsets.symmetric(
               vertical: 16,
             ),
+
             decoration: BoxDecoration(
-              color: Colors.white.withValues(
-                alpha: 0.10,
-              ),
+              color: isDark
+                  ? colors.primaryContainer
+                  .withValues(alpha: 0.55)
+                  : Colors.white.withValues(alpha: 0.10),
+
               borderRadius: BorderRadius.circular(18),
+
+              border: Border.all(
+                color: isDark
+                    ? colors.outlineVariant
+                    : Colors.white.withValues(alpha: 0.08),
+              ),
             ),
-            child: const Row(
+
+            child: Row(
               children: [
                 Expanded(
                   child: _DashboardStat(
                     icon: Icons.window_rounded,
                     value: "3",
                     label: "Windows",
+                    isDark: isDark,
                   ),
                 ),
 
-                _VerticalDivider(),
+                _VerticalDivider(
+                  isDark: isDark,
+                ),
 
                 Expanded(
                   child: _DashboardStat(
                     icon: Icons.sensors_rounded,
                     value: "6",
                     label: "Sensors",
+                    isDark: isDark,
                   ),
                 ),
 
-                _VerticalDivider(),
+                _VerticalDivider(
+                  isDark: isDark,
+                ),
 
                 Expanded(
                   child: _DashboardStat(
-                    icon: Icons.notifications_active_rounded,
+                    icon:
+                    Icons.notifications_active_rounded,
                     value: "1",
                     label: "Alerts",
+                    isDark: isDark,
                   ),
                 ),
               ],
@@ -190,25 +237,30 @@ class _DashboardHeaderState extends State<DashboardHeader> {
 
 // DASHBOARD STAT
 
-
 class _DashboardStat extends StatelessWidget {
   final IconData icon;
   final String value;
   final String label;
+  final bool isDark;
 
   const _DashboardStat({
     required this.icon,
     required this.value,
     required this.label,
+    required this.isDark,
   });
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Column(
       children: [
         Icon(
           icon,
-          color: Colors.white70,
+          color: isDark
+              ? colors.primary
+              : Colors.white70,
           size: 20,
         ),
 
@@ -216,8 +268,10 @@ class _DashboardStat extends StatelessWidget {
 
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: isDark
+                ? colors.onSurface
+                : Colors.white,
             fontSize: 23,
             fontWeight: FontWeight.bold,
           ),
@@ -227,8 +281,10 @@ class _DashboardStat extends StatelessWidget {
 
         Text(
           label,
-          style: const TextStyle(
-            color: Colors.white60,
+          style: TextStyle(
+            color: isDark
+                ? colors.onSurfaceVariant
+                : Colors.white60,
             fontSize: 11,
           ),
         ),
@@ -240,18 +296,23 @@ class _DashboardStat extends StatelessWidget {
 
 // VERTICAL DIVIDER
 
-
 class _VerticalDivider extends StatelessWidget {
-  const _VerticalDivider();
+  final bool isDark;
+
+  const _VerticalDivider({
+    required this.isDark,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Container(
       width: 1,
       height: 55,
-      color: Colors.white.withValues(
-        alpha: 0.15,
-      ),
+      color: isDark
+          ? colors.outlineVariant
+          : Colors.white.withValues(alpha: 0.15),
     );
   }
 }

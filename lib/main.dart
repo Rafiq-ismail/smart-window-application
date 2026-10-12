@@ -13,6 +13,7 @@ import 'services/settings_service.dart';
 import 'services/sensor_service.dart';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
@@ -22,7 +23,28 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Load saved settings
+// ==========================
+// FIREBASE CLOUD MESSAGING
+// ==========================
+  final messaging = FirebaseMessaging.instance;
+
+  final notificationSettings = await messaging.requestPermission(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
+
+  debugPrint(
+    'Notification permission: ${notificationSettings.authorizationStatus}',
+  );
+
+  final fcmToken = await messaging.getToken();
+
+  debugPrint('====================================');
+  debugPrint('FCM TOKEN: $fcmToken');
+  debugPrint('====================================');
+
+// Load saved settings
   await SettingsService.instance.loadSettings();
 
   // Sync actual Auto Mode state from ESP32

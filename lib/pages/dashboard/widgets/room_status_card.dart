@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/app_colors.dart';
 import '../../../services/sensor_service.dart';
 
 class RoomStatusCard extends StatelessWidget {
@@ -23,6 +22,10 @@ class RoomStatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
     return StreamBuilder(
       stream: SensorService.instance.stream,
       builder: (context, snapshot) {
@@ -39,53 +42,64 @@ class RoomStatusCard extends StatelessWidget {
           roomTemperature = sensor.temperature;
         }
 
-        final bool isOpen = status.toUpperCase() == 'OPEN';
-        final double opening = openingPercentage.toDouble();
+        final bool isOpen =
+            status.toUpperCase() == 'OPEN';
+
+        final double opening =
+        openingPercentage.toDouble();
 
         final Color statusColor = isOpen
-            ? AppColors.success
-            : AppColors.textSecondary;
+            ? colors.primary
+            : colors.onSurfaceVariant;
 
         return Material(
           color: Colors.transparent,
+
           child: InkWell(
             onTap: onTap,
             borderRadius: BorderRadius.circular(22),
+
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
+
               decoration: BoxDecoration(
-                color: AppColors.card,
+                color: colors.surface,
                 borderRadius: BorderRadius.circular(22),
+
                 border: Border.all(
-                  color: AppColors.divider,
+                  color: colors.outlineVariant,
                 ),
+
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.035),
+                    color: Colors.black.withValues(
+                      alpha: isDark ? 0.12 : 0.035,
+                    ),
                     blurRadius: 16,
                     offset: const Offset(0, 6),
                   ),
                 ],
               ),
+
               child: Column(
                 children: [
-
                   // ROOM HEADER
-
-
                   Row(
                     children: [
                       Container(
                         width: 48,
                         height: 48,
+
                         decoration: BoxDecoration(
-                          color: AppColors.primaryLight,
-                          borderRadius: BorderRadius.circular(15),
+                          color: colors.primaryContainer,
+                          borderRadius:
+                          BorderRadius.circular(15),
                         ),
+
                         child: Icon(
                           icon,
-                          color: AppColors.primaryDark,
+                          color: colors.primary,
                           size: 25,
                         ),
                       ),
@@ -94,23 +108,29 @@ class RoomStatusCard extends StatelessWidget {
 
                       Expanded(
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment:
+                          CrossAxisAlignment.start,
                           children: [
                             Text(
                               roomName,
-                              style: const TextStyle(
-                                color: AppColors.textPrimary,
+                              maxLines: 2,
+                              overflow:
+                              TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: colors.onSurface,
                                 fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                                fontWeight:
+                                FontWeight.bold,
                               ),
                             ),
 
                             const SizedBox(height: 3),
 
-                            const Text(
+                            Text(
                               "Smart window",
                               style: TextStyle(
-                                color: AppColors.textSecondary,
+                                color:
+                                colors.onSurfaceVariant,
                                 fontSize: 12,
                               ),
                             ),
@@ -118,28 +138,33 @@ class RoomStatusCard extends StatelessWidget {
                         ),
                       ),
 
+                      const SizedBox(width: 8),
 
                       // STATUS
-
-
                       Container(
-                        padding: const EdgeInsets.symmetric(
+                        padding:
+                        const EdgeInsets.symmetric(
                           horizontal: 10,
                           vertical: 7,
                         ),
+
                         decoration: BoxDecoration(
                           color: isOpen
-                              ? AppColors.primaryLight
-                              : const Color(0xFFF1F2EF),
-                          borderRadius: BorderRadius.circular(20),
+                              ? colors.primaryContainer
+                              : colors
+                              .surfaceContainerHighest,
+                          borderRadius:
+                          BorderRadius.circular(20),
                         ),
+
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
                               isOpen
                                   ? Icons.lock_open_rounded
-                                  : Icons.lock_outline_rounded,
+                                  : Icons
+                                  .lock_outline_rounded,
                               size: 14,
                               color: statusColor,
                             ),
@@ -151,7 +176,8 @@ class RoomStatusCard extends StatelessWidget {
                               style: TextStyle(
                                 color: statusColor,
                                 fontSize: 12,
-                                fontWeight: FontWeight.bold,
+                                fontWeight:
+                                FontWeight.bold,
                               ),
                             ),
                           ],
@@ -162,26 +188,23 @@ class RoomStatusCard extends StatelessWidget {
 
                   const SizedBox(height: 20),
 
-
                   // OPENING PROGRESS
-
-
                   Row(
                     mainAxisAlignment:
                     MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         "Window Opening",
                         style: TextStyle(
-                          color: AppColors.textSecondary,
+                          color: colors.onSurfaceVariant,
                           fontSize: 13,
                         ),
                       ),
 
                       Text(
                         "${opening.toInt()}%",
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
+                        style: TextStyle(
+                          color: colors.onSurface,
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                         ),
@@ -194,22 +217,21 @@ class RoomStatusCard extends StatelessWidget {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(10),
                     child: LinearProgressIndicator(
-                      value: (opening / 100).clamp(0.0, 1.0),
+                      value:
+                      (opening / 100).clamp(0.0, 1.0),
                       minHeight: 8,
-                      backgroundColor: AppColors.primaryLight,
+                      backgroundColor:
+                      colors.primaryContainer,
                       valueColor:
-                      const AlwaysStoppedAnimation<Color>(
-                        AppColors.primary,
+                      AlwaysStoppedAnimation<Color>(
+                        colors.primary,
                       ),
                     ),
                   ),
 
                   const SizedBox(height: 18),
 
-
                   // BOTTOM INFORMATION
-
-
                   Row(
                     children: [
                       Expanded(
@@ -225,7 +247,7 @@ class RoomStatusCard extends StatelessWidget {
                       Container(
                         width: 1,
                         height: 35,
-                        color: AppColors.divider,
+                        color: colors.outlineVariant,
                       ),
 
                       Expanded(
@@ -251,7 +273,6 @@ class RoomStatusCard extends StatelessWidget {
 
 // ROOM INFO
 
-
 class _RoomInfo extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -265,39 +286,48 @@ class _RoomInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Icon(
           icon,
           size: 19,
-          color: AppColors.primaryDark,
+          color: colors.primary,
         ),
 
         const SizedBox(width: 8),
 
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 10,
+        Flexible(
+          child: Column(
+            crossAxisAlignment:
+            CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: colors.onSurfaceVariant,
+                  fontSize: 10,
+                ),
               ),
-            ),
 
-            const SizedBox(height: 2),
+              const SizedBox(height: 2),
 
-            Text(
-              value,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
+              Text(
+                value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: colors.onSurface,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );

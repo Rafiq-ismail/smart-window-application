@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/app_colors.dart';
-
 class QuickActionCard extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -18,31 +16,43 @@ class QuickActionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
     return Material(
       color: Colors.transparent,
+
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(18),
+
         child: Container(
           height: 120,
           padding: const EdgeInsets.symmetric(
             horizontal: 8,
             vertical: 12,
           ),
+
           decoration: BoxDecoration(
-            color: AppColors.card,
+            color: colors.surface,
             borderRadius: BorderRadius.circular(18),
+
             border: Border.all(
-              color: AppColors.divider,
+              color: colors.outlineVariant,
             ),
-            boxShadow: const [
+
+            boxShadow: [
               BoxShadow(
-                color: Color(0x0D000000),
+                color: Colors.black.withValues(
+                  alpha: isDark ? 0.10 : 0.035,
+                ),
                 blurRadius: 12,
-                offset: Offset(0, 5),
+                offset: const Offset(0, 5),
               ),
             ],
           ),
+
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -50,10 +60,20 @@ class QuickActionCard extends StatelessWidget {
               Container(
                 width: 48,
                 height: 48,
+
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.12),
+                  color: color.withValues(
+                    alpha: isDark ? 0.14 : 0.10,
+                  ),
                   borderRadius: BorderRadius.circular(14),
+
+                  border: Border.all(
+                    color: color.withValues(
+                      alpha: isDark ? 0.16 : 0.08,
+                    ),
+                  ),
                 ),
+
                 child: Icon(
                   icon,
                   color: color,
@@ -69,8 +89,9 @@ class QuickActionCard extends StatelessWidget {
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
+
+                style: TextStyle(
+                  color: colors.onSurface,
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                 ),

@@ -15,13 +15,12 @@ import '../control/control_page.dart';
 import 'widgets/weather_card.dart';
 import '../../services/settings_service.dart';
 
-import 'widgets/energy_card.dart';
+
 import '../../core/app_colors.dart';
 import 'widgets/room_status_card.dart';
 import 'widgets/sensor_card.dart';
 import 'widgets/quick_action_card.dart';
-import 'widgets/statistics_card.dart';
-import 'widgets/activity_card.dart';
+
 import '../../services/top_notification_service.dart';
 
 
@@ -264,9 +263,9 @@ class _DashboardPageState extends State<DashboardPage> {
               },
             ),
 
-            const EnergyCard(),
 
-            const SizedBox(height: 30),
+
+
 
             const Text(
               "Rooms",
@@ -526,75 +525,6 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
           ],
         ),
-
-
-
-        const SizedBox(height: 30),
-
-        const StatisticsCard(),
-
-        const SizedBox(height: 30),
-
-        const Text(
-          "Recent Activity",
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-
-const SizedBox(height: 15),
-
-const ActivityCard(
-icon: Icons.window,
-color: Colors.green,
-title: "Living Room Window Opened",
-time: "10:35 AM",
-),
-
-ActivityCard(
-icon: SensorService.instance.rain
-? Icons.cloud
-: Icons.cloud_done,
-color: SensorService.instance.rain
-? Colors.blue
-: Colors.green,
-title: SensorService.instance.rain
-? "Rain Detected"
-: "Weather Normal",
-time: "Live",
-),
-
-ActivityCard(
-icon: SensorService.instance.windowOpen
-? Icons.window
-: Icons.window_outlined,
-color: SensorService.instance.windowOpen
-? Colors.green
-: Colors.red,
-title: SensorService.instance.windowOpen
-? "Window Open"
-: "Window Closed",
-time: "Live",
-),
-
-ActivityCard(
-icon: SensorService.instance.smoke
-? Icons.local_fire_department
-: Icons.check_circle,
-color: SensorService.instance.smoke
-? Colors.red
-: Colors.green,
-title: SensorService.instance.smoke
-? "Smoke Detected"
-: "Smoke Normal",
-time: "Live",
-),
-
-const SizedBox(height: 30),
-
-            const SizedBox(height: 20),
-
 
           ],
         ),

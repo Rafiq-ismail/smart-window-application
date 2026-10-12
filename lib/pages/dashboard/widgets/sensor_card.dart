@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/app_colors.dart';
-
 class SensorCard extends StatelessWidget {
   final String title;
   final String value;
@@ -18,32 +16,52 @@ class SensorCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(14),
+
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(20),
+
         border: Border.all(
-          color: AppColors.divider,
+          color: colors.outlineVariant,
         ),
+
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withValues(
+              alpha: isDark ? 0.10 : 0.035,
+            ),
             blurRadius: 12,
             offset: const Offset(0, 5),
           ),
         ],
       ),
+
       child: Row(
         children: [
           // SENSOR ICON
           Container(
             width: 38,
             height: 38,
+
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.10),
+              color: color.withValues(
+                alpha: isDark ? 0.14 : 0.10,
+              ),
               borderRadius: BorderRadius.circular(12),
+
+              border: Border.all(
+                color: color.withValues(
+                  alpha: isDark ? 0.16 : 0.08,
+                ),
+              ),
             ),
+
             child: Icon(
               icon,
               color: color,
@@ -63,8 +81,8 @@ class SensorCard extends StatelessWidget {
                   title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
+                  style: TextStyle(
+                    color: colors.onSurfaceVariant,
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                   ),
@@ -76,8 +94,8 @@ class SensorCard extends StatelessWidget {
                   value,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
+                  style: TextStyle(
+                    color: colors.onSurface,
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
                   ),
@@ -91,7 +109,7 @@ class SensorCard extends StatelessWidget {
             width: 7,
             height: 7,
             decoration: BoxDecoration(
-              color: AppColors.success,
+              color: colors.primary,
               shape: BoxShape.circle,
             ),
           ),
