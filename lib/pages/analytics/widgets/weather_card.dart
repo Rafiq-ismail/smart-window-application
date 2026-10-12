@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../../core/app_colors.dart';
 import '../../../services/weather_service.dart';
 
 class WeatherCard extends StatefulWidget {
@@ -41,23 +40,33 @@ class _WeatherCardState extends State<WeatherCard> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
+
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(22),
+
         border: Border.all(
-          color: AppColors.divider,
+          color: colors.outlineVariant,
         ),
+
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.035),
+            color: Colors.black.withValues(
+              alpha: isDark ? 0.12 : 0.035,
+            ),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
         ],
       ),
+
       child: Column(
         children: [
           // HEADER
@@ -67,7 +76,9 @@ class _WeatherCardState extends State<WeatherCard> {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: Colors.orange.withValues(alpha: 0.10),
+                  color: Colors.orange.withValues(
+                    alpha: isDark ? 0.14 : 0.10,
+                  ),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(
@@ -79,23 +90,25 @@ class _WeatherCardState extends State<WeatherCard> {
 
               const SizedBox(width: 13),
 
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       "Weather Forecast",
                       style: TextStyle(
-                        color: AppColors.textPrimary,
+                        color: colors.onSurface,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 3),
+
+                    const SizedBox(height: 3),
+
                     Text(
                       "Current weather conditions",
                       style: TextStyle(
-                        color: AppColors.textSecondary,
+                        color: colors.onSurfaceVariant,
                         fontSize: 12,
                       ),
                     ),
@@ -123,7 +136,7 @@ class _WeatherCardState extends State<WeatherCard> {
               Container(
                 width: 1,
                 height: 45,
-                color: AppColors.divider,
+                color: colors.outlineVariant,
               ),
 
               Expanded(
@@ -139,7 +152,7 @@ class _WeatherCardState extends State<WeatherCard> {
               Container(
                 width: 1,
                 height: 45,
-                color: AppColors.divider,
+                color: colors.outlineVariant,
               ),
 
               Expanded(
@@ -160,10 +173,20 @@ class _WeatherCardState extends State<WeatherCard> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(14),
+
             decoration: BoxDecoration(
-              color: Colors.orange.withValues(alpha: 0.08),
+              color: Colors.orange.withValues(
+                alpha: isDark ? 0.10 : 0.08,
+              ),
               borderRadius: BorderRadius.circular(15),
+
+              border: Border.all(
+                color: Colors.orange.withValues(
+                  alpha: isDark ? 0.16 : 0.10,
+                ),
+              ),
             ),
+
             child: Row(
               children: [
                 const Icon(
@@ -177,8 +200,8 @@ class _WeatherCardState extends State<WeatherCard> {
                 Expanded(
                   child: Text(
                     weatherMessage(),
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
+                    style: TextStyle(
+                      color: colors.onSurface,
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
@@ -195,13 +218,14 @@ class _WeatherCardState extends State<WeatherCard> {
 
   // WEATHER INFO
 
-
   Widget _WeatherInfo({
     required IconData icon,
     required Color color,
     required String value,
     required String title,
   }) {
+    final colors = Theme.of(context).colorScheme;
+
     return Column(
       children: [
         Icon(
@@ -214,8 +238,8 @@ class _WeatherCardState extends State<WeatherCard> {
 
         Text(
           value,
-          style: const TextStyle(
-            color: AppColors.textPrimary,
+          style: TextStyle(
+            color: colors.onSurface,
             fontSize: 13,
             fontWeight: FontWeight.bold,
           ),
@@ -225,14 +249,15 @@ class _WeatherCardState extends State<WeatherCard> {
 
         Text(
           title,
-          style: const TextStyle(
-            color: AppColors.textSecondary,
+          style: TextStyle(
+            color: colors.onSurfaceVariant,
             fontSize: 10,
           ),
         ),
       ],
     );
   }
+
 
   IconData weatherIcon() {
     switch (WeatherService.instance.condition) {
@@ -252,6 +277,7 @@ class _WeatherCardState extends State<WeatherCard> {
         return Icons.wb_sunny_rounded;
     }
   }
+
 
   String weatherMessage() {
     switch (WeatherService.instance.condition) {

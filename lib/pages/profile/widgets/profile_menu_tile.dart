@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/app_colors.dart';
-
 class ProfileMenuTile extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -20,18 +18,22 @@ class ProfileMenuTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          color: AppColors.divider,
+          color: colors.outlineVariant,
         ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(
-              alpha: 0.035,
+              alpha: isDark ? 0.18 : 0.035,
             ),
             blurRadius: 16,
             offset: const Offset(0, 6),
@@ -52,12 +54,12 @@ class ProfileMenuTile extends StatelessWidget {
                   width: 46,
                   height: 46,
                   decoration: BoxDecoration(
-                    color: AppColors.primaryLight,
+                    color: colors.primaryContainer,
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Icon(
                     icon,
-                    color: AppColors.primaryDark,
+                    color: colors.primary,
                     size: 23,
                   ),
                 ),
@@ -67,13 +69,12 @@ class ProfileMenuTile extends StatelessWidget {
                 // TEXT
                 Expanded(
                   child: Column(
-                    crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
+                        style: TextStyle(
+                          color: colors.onSurface,
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
                         ),
@@ -83,9 +84,10 @@ class ProfileMenuTile extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           subtitle!,
-                          style: const TextStyle(
-                            color:
-                            AppColors.textSecondary,
+                          style: TextStyle(
+                            color: colors.onSurface.withValues(
+                              alpha: 0.65,
+                            ),
                             fontSize: 12,
                           ),
                         ),
@@ -99,12 +101,12 @@ class ProfileMenuTile extends StatelessWidget {
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: AppColors.primaryLight,
+                    color: colors.primaryContainer,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.chevron_right_rounded,
-                    color: AppColors.primaryDark,
+                    color: colors.primary,
                     size: 20,
                   ),
                 ),

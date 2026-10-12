@@ -23,18 +23,20 @@ class SensorProgressCard extends StatelessWidget {
     final double safeProgress =
     progress.clamp(0.0, 1.0);
 
+    final colors = Theme.of(context).colorScheme;
+
     return Container(
       width: double.infinity,
 
       padding: const EdgeInsets.all(18),
 
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: colors.surface,
 
         borderRadius: BorderRadius.circular(20),
 
         border: Border.all(
-          color: AppColors.divider,
+          color: colors.outlineVariant,
         ),
 
         boxShadow: [
@@ -86,8 +88,8 @@ class SensorProgressCard extends StatelessWidget {
                 child: Text(
                   title,
 
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
+                  style: TextStyle(
+                    color: colors.onSurface,
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                   ),
@@ -122,8 +124,7 @@ class SensorProgressCard extends StatelessWidget {
 
               minHeight: 7,
 
-              backgroundColor:
-              AppColors.divider,
+              backgroundColor: colors.outlineVariant,
 
               valueColor:
               AlwaysStoppedAnimation<Color>(

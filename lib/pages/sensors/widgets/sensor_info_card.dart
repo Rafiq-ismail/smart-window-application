@@ -18,18 +18,21 @@ class SensorInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    final colors = Theme.of(context).colorScheme;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
 
       padding: const EdgeInsets.all(16),
 
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: colors.surface,
 
         borderRadius: BorderRadius.circular(20),
 
         border: Border.all(
-          color: AppColors.divider,
+          color: colors.outlineVariant,
         ),
 
         boxShadow: [
@@ -72,8 +75,8 @@ class SensorInfoCard extends StatelessWidget {
             child: Text(
               title,
 
-              style: const TextStyle(
-                color: AppColors.textPrimary,
+              style: TextStyle(
+                color: colors.onSurface,
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
               ),

@@ -15,6 +15,9 @@ import '../../services/auth_service.dart';
 import '../../core/app_routes.dart';
 import '../../core/app_colors.dart';
 
+import 'package:provider/provider.dart';
+import '../../providers/settings_provider.dart';
+
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -64,10 +67,10 @@ class _ProfilePageState extends State<ProfilePage> {
           // SETTINGS
 
 
-          const Text(
+          Text(
             "Settings",
             style: TextStyle(
-              color: AppColors.textPrimary,
+              color: Theme.of(context).colorScheme.onSurface,
               fontSize: 22,
               fontWeight: FontWeight.bold,
             ),
@@ -119,26 +122,20 @@ class _ProfilePageState extends State<ProfilePage> {
             title: "Dark Mode",
             subtitle: "Enable dark appearance",
             color: AppColors.primary,
-            value: darkMode,
+            value: context.watch<SettingsProvider>().darkMode,
             onChanged: (value) async {
-              await SettingsService.instance
+              await context
+                  .read<SettingsProvider>()
                   .setDarkMode(value);
-
-              if (!mounted) return;
-
-              setState(() {
-                darkMode = value;
-              });
             },
           ),
-
           const SizedBox(height: 30),
 
 
-          const Text(
+          Text(
             "More",
             style: TextStyle(
-              color: AppColors.textPrimary,
+              color: Theme.of(context).colorScheme.onSurface,
               fontSize: 22,
               fontWeight: FontWeight.bold,
             ),
@@ -215,24 +212,18 @@ class _ProfilePageState extends State<ProfilePage> {
           Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(18),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(
-                    alpha: 0.025,
-                  ),
-                  blurRadius: 12,
-                  offset: const Offset(0, 5),
-                ),
-              ],
             ),
             child: SizedBox(
               width: double.infinity,
               height: 54,
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.danger,
-                  foregroundColor: Colors.white,
+                  backgroundColor: Theme.of(context).colorScheme.surface,
+                  foregroundColor: AppColors.danger,
                   elevation: 0,
+                  side: BorderSide(
+                    color: AppColors.danger.withValues(alpha: 0.55),
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(18),
                   ),

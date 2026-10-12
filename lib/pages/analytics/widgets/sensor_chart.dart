@@ -1,6 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import '../../../core/app_colors.dart';
+
 import '../../../services/history_service.dart';
 import '../../../services/sensor_service.dart';
 
@@ -9,6 +9,10 @@ class SensorChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
     return StreamBuilder(
       stream: SensorService.instance.stream,
       builder: (context, snapshot) {
@@ -16,66 +20,73 @@ class SensorChart extends StatelessWidget {
 
         return Container(
           padding: const EdgeInsets.all(20),
+
           decoration: BoxDecoration(
-            color: AppColors.card,
+            color: colors.surface,
             borderRadius: BorderRadius.circular(22),
+
             border: Border.all(
-              color: AppColors.divider,
+              color: colors.outlineVariant,
             ),
+
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.035),
+                color: Colors.black.withValues(
+                  alpha: isDark ? 0.12 : 0.035,
+                ),
                 blurRadius: 16,
                 offset: const Offset(0, 6),
               ),
             ],
           ),
+
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
-
               // HEADER
-
-
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment:
+                MainAxisAlignment.spaceBetween,
                 children: [
-
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Sensor Analytics",
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleLarge
-                            ?.copyWith(
-                          fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment:
+                      CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Sensor Analytics",
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(
+                            color: colors.onSurface,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
 
-                      const SizedBox(height: 5),
+                        const SizedBox(height: 5),
 
-                      Text(
-                        "Temperature & Humidity",
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 13,
+                        Text(
+                          "Temperature & Humidity",
+                          style: TextStyle(
+                            color: colors.onSurfaceVariant,
+                            fontSize: 13,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
 
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: Colors.blue.withValues(alpha: 0.1),
+                      borderRadius:
+                      BorderRadius.circular(12),
+                      color: colors.primaryContainer,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.analytics_outlined,
-                      color: Colors.blue,
+                      color: colors.primary,
                     ),
                   ),
                 ],
@@ -83,13 +94,9 @@ class SensorChart extends StatelessWidget {
 
               const SizedBox(height: 25),
 
-
               // CURRENT VALUES
-
-
               Row(
                 children: [
-
                   Expanded(
                     child: _SensorValue(
                       title: "Temperature",
@@ -116,10 +123,7 @@ class SensorChart extends StatelessWidget {
 
               const SizedBox(height: 25),
 
-
               // CHART
-
-
               SizedBox(
                 height: 250,
                 child: LineChart(
@@ -136,7 +140,10 @@ class SensorChart extends StatelessWidget {
                       horizontalInterval: 20,
                       getDrawingHorizontalLine: (value) {
                         return FlLine(
-                          color: Colors.grey.withValues(alpha: 0.15),
+                          color: colors.outlineVariant
+                              .withValues(
+                            alpha: isDark ? 0.55 : 0.70,
+                          ),
                           strokeWidth: 1,
                         );
                       },
@@ -177,7 +184,8 @@ class SensorChart extends StatelessWidget {
                               value.toInt().toString(),
                               style: TextStyle(
                                 fontSize: 11,
-                                color: Colors.grey.shade500,
+                                color:
+                                colors.onSurfaceVariant,
                               ),
                             );
                           },
@@ -188,14 +196,16 @@ class SensorChart extends StatelessWidget {
                     // TOUCH
                     lineTouchData: LineTouchData(
                       enabled: true,
-                      touchTooltipData: LineTouchTooltipData(
+                      touchTooltipData:
+                      LineTouchTooltipData(
                         getTooltipItems: (touchedSpots) {
                           return touchedSpots.map((spot) {
                             return LineTooltipItem(
                               spot.y.toStringAsFixed(1),
                               const TextStyle(
                                 color: Colors.white,
-                                fontWeight: FontWeight.bold,
+                                fontWeight:
+                                FontWeight.bold,
                               ),
                             );
                           }).toList();
@@ -205,7 +215,6 @@ class SensorChart extends StatelessWidget {
 
                     // LINES
                     lineBarsData: [
-
                       // TEMPERATURE
                       LineChartBarData(
                         spots: history.temperatureHistory,
@@ -221,7 +230,7 @@ class SensorChart extends StatelessWidget {
                         belowBarData: BarAreaData(
                           show: true,
                           color: Colors.orange.withValues(
-                            alpha: 0.08,
+                            alpha: isDark ? 0.10 : 0.08,
                           ),
                         ),
                       ),
@@ -241,7 +250,7 @@ class SensorChart extends StatelessWidget {
                         belowBarData: BarAreaData(
                           show: true,
                           color: Colors.blue.withValues(
-                            alpha: 0.06,
+                            alpha: isDark ? 0.09 : 0.06,
                           ),
                         ),
                       ),
@@ -252,18 +261,17 @@ class SensorChart extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-
-
+              // LEGEND
               Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-
+                mainAxisAlignment:
+                MainAxisAlignment.center,
+                children: const [
                   _LegendItem(
                     color: Colors.orange,
                     text: "Temperature",
                   ),
 
-                  const SizedBox(width: 25),
+                  SizedBox(width: 25),
 
                   _LegendItem(
                     color: Colors.blue,
@@ -280,9 +288,7 @@ class SensorChart extends StatelessWidget {
 }
 
 
-
 // SENSOR VALUE CARD
-
 
 class _SensorValue extends StatelessWidget {
   final String title;
@@ -299,22 +305,34 @@ class _SensorValue extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(14),
 
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        color: color.withValues(alpha: 0.08),
+        color: color.withValues(
+          alpha: isDark ? 0.12 : 0.08,
+        ),
+        border: Border.all(
+          color: color.withValues(
+            alpha: isDark ? 0.16 : 0.08,
+          ),
+        ),
       ),
 
       child: Row(
         children: [
-
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: color.withValues(alpha: 0.15),
+              color: color.withValues(
+                alpha: isDark ? 0.18 : 0.15,
+              ),
             ),
             child: Icon(
               icon,
@@ -327,14 +345,14 @@ class _SensorValue extends StatelessWidget {
 
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment:
+              CrossAxisAlignment.start,
               children: [
-
                 Text(
                   title,
                   style: TextStyle(
                     fontSize: 11,
-                    color: Colors.grey.shade600,
+                    color: colors.onSurfaceVariant,
                   ),
                 ),
 
@@ -358,6 +376,7 @@ class _SensorValue extends StatelessWidget {
 }
 
 
+// LEGEND
 
 class _LegendItem extends StatelessWidget {
   final Color color;
@@ -370,9 +389,10 @@ class _LegendItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Row(
       children: [
-
         Container(
           width: 10,
           height: 10,
@@ -386,7 +406,8 @@ class _LegendItem extends StatelessWidget {
 
         Text(
           text,
-          style: const TextStyle(
+          style: TextStyle(
+            color: colors.onSurfaceVariant,
             fontSize: 12,
             fontWeight: FontWeight.w500,
           ),

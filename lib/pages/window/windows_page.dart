@@ -11,13 +11,14 @@ class WindowsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
       appBar: AppBar(
         title: const Text("My Windows"),
         centerTitle: true,
-        backgroundColor: AppColors.background,
         elevation: 0,
       ),
 
@@ -26,7 +27,8 @@ class WindowsPage extends StatelessWidget {
         onPressed: () {
           _showAddWindowDialog(context);
         },
-        backgroundColor: AppColors.primary,
+        backgroundColor: colors.primary,
+        foregroundColor: colors.onPrimary,
         icon: const Icon(Icons.add),
         label: const Text("Add Window"),
       ),
@@ -150,10 +152,10 @@ class WindowsPage extends StatelessWidget {
                   padding: const EdgeInsets.all(16),
 
                   decoration: BoxDecoration(
-                    color: AppColors.card,
+                    color: colors.surface,
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(
-                      color: AppColors.divider,
+                      color: colors.outlineVariant,
                     ),
                   ),
 
@@ -164,16 +166,15 @@ class WindowsPage extends StatelessWidget {
                         height: 50,
 
                         decoration: BoxDecoration(
-                          color: AppColors.background,
-                          borderRadius:
-                          BorderRadius.circular(14),
+                          color: colors.primaryContainer,
+                          borderRadius: BorderRadius.circular(14),
                         ),
 
                         child: Icon(
                           isOpen
                               ? Icons.window_rounded
                               : Icons.window_outlined,
-                          color: AppColors.primary,
+                          color: colors.primary,
                         ),
                       ),
 
@@ -187,8 +188,8 @@ class WindowsPage extends StatelessWidget {
                           children: [
                             Text(
                               name,
-                              style: const TextStyle(
-                                color: AppColors.textPrimary,
+                              style: TextStyle(
+                                color: colors.onSurface,
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -198,8 +199,10 @@ class WindowsPage extends StatelessWidget {
 
                             Text(
                               "$status • $openingPercentage%",
-                              style: const TextStyle(
-                                color: AppColors.textSecondary,
+                              style: TextStyle(
+                                color: colors.onSurface.withValues(
+                                  alpha: 0.65,
+                                ),
                                 fontSize: 13,
                               ),
                             ),
@@ -207,9 +210,11 @@ class WindowsPage extends StatelessWidget {
                         ),
                       ),
 
-                      const Icon(
+                      Icon(
                         Icons.chevron_right_rounded,
-                        color: AppColors.textSecondary,
+                        color: colors.onSurface.withValues(
+                          alpha: 0.55,
+                        ),
                       ),
                     ],
                   ),

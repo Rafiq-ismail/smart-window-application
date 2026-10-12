@@ -1,24 +1,26 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/app_colors.dart';
-
 class AboutCard extends StatelessWidget {
   const AboutCard({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          color: AppColors.divider,
+          color: colors.outlineVariant,
         ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(
-              alpha: 0.035,
+              alpha: isDark ? 0.18 : 0.035,
             ),
             blurRadius: 16,
             offset: const Offset(0, 6),
@@ -28,33 +30,30 @@ class AboutCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           // HEADER
-
-
           Row(
             children: [
               Container(
                 width: 46,
                 height: 46,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
+                  color: colors.primaryContainer,
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.info_outline_rounded,
-                  color: AppColors.primaryDark,
+                  color: colors.primary,
                   size: 23,
                 ),
               ),
 
               const SizedBox(width: 14),
 
-              const Expanded(
+              Expanded(
                 child: Text(
                   "About Smart Window",
                   style: TextStyle(
-                    color: AppColors.textPrimary,
+                    color: colors.onSurface,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -65,11 +64,8 @@ class AboutCard extends StatelessWidget {
 
           const SizedBox(height: 20),
 
-
           // INFORMATION
-
-
-          _InfoRow(
+          const _InfoRow(
             icon: Icons.window_rounded,
             title: "Application",
             value: "Smart Window IoT",
@@ -77,7 +73,7 @@ class AboutCard extends StatelessWidget {
 
           const _Divider(),
 
-          _InfoRow(
+          const _InfoRow(
             icon: Icons.code_rounded,
             title: "Version",
             value: "1.0.0",
@@ -85,7 +81,7 @@ class AboutCard extends StatelessWidget {
 
           const _Divider(),
 
-          _InfoRow(
+          const _InfoRow(
             icon: Icons.flutter_dash_rounded,
             title: "Framework",
             value: "Flutter",
@@ -93,7 +89,7 @@ class AboutCard extends StatelessWidget {
 
           const _Divider(),
 
-          _InfoRow(
+          const _InfoRow(
             icon: Icons.memory_rounded,
             title: "Controller",
             value: "ESP32",
@@ -101,7 +97,7 @@ class AboutCard extends StatelessWidget {
 
           const _Divider(),
 
-          _InfoRow(
+          const _InfoRow(
             icon: Icons.person_outline_rounded,
             title: "Developer",
             value: "Muhammad Rafiq",
@@ -114,7 +110,6 @@ class AboutCard extends StatelessWidget {
 
 
 // INFO ROW
-
 
 class _InfoRow extends StatelessWidget {
   final IconData icon;
@@ -129,6 +124,8 @@ class _InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.symmetric(
         vertical: 10,
@@ -139,12 +136,12 @@ class _InfoRow extends StatelessWidget {
             width: 34,
             height: 34,
             decoration: BoxDecoration(
-              color: AppColors.primaryLight,
+              color: colors.primaryContainer,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
               icon,
-              color: AppColors.primaryDark,
+              color: colors.primary,
               size: 18,
             ),
           ),
@@ -154,8 +151,10 @@ class _InfoRow extends StatelessWidget {
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(
-                color: AppColors.textSecondary,
+              style: TextStyle(
+                color: colors.onSurface.withValues(
+                  alpha: 0.65,
+                ),
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
               ),
@@ -167,8 +166,8 @@ class _InfoRow extends StatelessWidget {
               value,
               textAlign: TextAlign.right,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
+              style: TextStyle(
+                color: colors.onSurface,
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
               ),
@@ -183,7 +182,6 @@ class _InfoRow extends StatelessWidget {
 
 // DIVIDER
 
-
 class _Divider extends StatelessWidget {
   const _Divider();
 
@@ -191,7 +189,9 @@ class _Divider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 1,
-      color: AppColors.divider,
+      color: Theme.of(context)
+          .colorScheme
+          .outlineVariant,
     );
   }
 }

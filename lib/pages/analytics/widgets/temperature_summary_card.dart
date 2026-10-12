@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/app_colors.dart';
 import '../../../services/sensor_service.dart';
 
 class TemperatureSummaryCard extends StatelessWidget {
@@ -8,6 +7,10 @@ class TemperatureSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
     return StreamBuilder(
       stream: SensorService.instance.stream,
       builder: (context, snapshot) {
@@ -20,20 +23,26 @@ class TemperatureSummaryCard extends StatelessWidget {
         return Container(
           width: double.infinity,
           padding: const EdgeInsets.all(20),
+
           decoration: BoxDecoration(
-            color: AppColors.card,
+            color: colors.surface,
             borderRadius: BorderRadius.circular(22),
+
             border: Border.all(
-              color: AppColors.divider,
+              color: colors.outlineVariant,
             ),
+
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.035),
+                color: Colors.black.withValues(
+                  alpha: isDark ? 0.12 : 0.035,
+                ),
                 blurRadius: 16,
                 offset: const Offset(0, 6),
               ),
             ],
           ),
+
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -43,10 +52,14 @@ class TemperatureSummaryCard extends StatelessWidget {
                   Container(
                     width: 44,
                     height: 44,
+
                     decoration: BoxDecoration(
-                      color: Colors.orange.withValues(alpha: 0.10),
+                      color: Colors.orange.withValues(
+                        alpha: isDark ? 0.14 : 0.10,
+                      ),
                       borderRadius: BorderRadius.circular(14),
                     ),
+
                     child: const Icon(
                       Icons.thermostat_rounded,
                       color: Colors.orange,
@@ -56,23 +69,26 @@ class TemperatureSummaryCard extends StatelessWidget {
 
                   const SizedBox(width: 13),
 
-                  const Expanded(
+                  Expanded(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment:
+                      CrossAxisAlignment.start,
                       children: [
                         Text(
                           "Today's Temperature",
                           style: TextStyle(
-                            color: AppColors.textPrimary,
+                            color: colors.onSurface,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(height: 3),
+
+                        const SizedBox(height: 3),
+
                         Text(
                           "Temperature summary",
                           style: TextStyle(
-                            color: AppColors.textSecondary,
+                            color: colors.onSurfaceVariant,
                             fontSize: 12,
                           ),
                         ),
@@ -90,7 +106,8 @@ class TemperatureSummaryCard extends StatelessWidget {
                   Expanded(
                     child: _TemperatureItem(
                       title: "Highest",
-                      value: "${highest.toStringAsFixed(1)}°C",
+                      value:
+                      "${highest.toStringAsFixed(1)}°C",
                       color: Colors.red,
                     ),
                   ),
@@ -98,13 +115,14 @@ class TemperatureSummaryCard extends StatelessWidget {
                   Container(
                     width: 1,
                     height: 42,
-                    color: AppColors.divider,
+                    color: colors.outlineVariant,
                   ),
 
                   Expanded(
                     child: _TemperatureItem(
                       title: "Average",
-                      value: "${average.toStringAsFixed(1)}°C",
+                      value:
+                      "${average.toStringAsFixed(1)}°C",
                       color: Colors.orange,
                     ),
                   ),
@@ -112,13 +130,14 @@ class TemperatureSummaryCard extends StatelessWidget {
                   Container(
                     width: 1,
                     height: 42,
-                    color: AppColors.divider,
+                    color: colors.outlineVariant,
                   ),
 
                   Expanded(
                     child: _TemperatureItem(
                       title: "Lowest",
-                      value: "${lowest.toStringAsFixed(1)}°C",
+                      value:
+                      "${lowest.toStringAsFixed(1)}°C",
                       color: Colors.blue,
                     ),
                   ),
@@ -135,7 +154,6 @@ class TemperatureSummaryCard extends StatelessWidget {
 
 // TEMPERATURE ITEM
 
-
 class _TemperatureItem extends StatelessWidget {
   final String title;
   final String value;
@@ -149,6 +167,8 @@ class _TemperatureItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Column(
       children: [
         Text(
@@ -164,8 +184,8 @@ class _TemperatureItem extends StatelessWidget {
 
         Text(
           title,
-          style: const TextStyle(
-            color: AppColors.textSecondary,
+          style: TextStyle(
+            color: colors.onSurfaceVariant,
             fontSize: 11,
           ),
         ),

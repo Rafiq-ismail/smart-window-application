@@ -9,30 +9,20 @@ class SensorsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return StreamBuilder(
       stream: SensorService.instance.stream,
       builder: (context, snapshot) {
         final sensor = SensorService.instance;
 
         return Scaffold(
-          backgroundColor: AppColors.background,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
           appBar: AppBar(
-            backgroundColor: AppColors.background,
             elevation: 0,
             centerTitle: true,
-
             title: const Text(
               "Sensor Monitoring",
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            iconTheme: const IconThemeData(
-              color: AppColors.textPrimary,
             ),
           ),
 
@@ -54,10 +44,10 @@ class SensorsPage extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
 
                 decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
+                  color: colors.primaryContainer,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: AppColors.divider,
+                    color: colors.outlineVariant,
                   ),
                 ),
 
@@ -82,28 +72,27 @@ class SensorsPage extends StatelessWidget {
 
                     const SizedBox(width: 13),
 
-                    const Expanded(
+                    Expanded(
                       child: Column(
-                        crossAxisAlignment:
-                        CrossAxisAlignment.start,
-
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-
                           Text(
                             "All Sensors Online",
                             style: TextStyle(
-                              color: AppColors.textPrimary,
+                              color: colors.onSurface,
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
 
-                          SizedBox(height: 3),
+                          const SizedBox(height: 3),
 
                           Text(
                             "Monitoring every 2 seconds",
                             style: TextStyle(
-                              color: AppColors.textSecondary,
+                              color: colors.onSurface.withValues(
+                                alpha: 0.65,
+                              ),
                               fontSize: 12,
                             ),
                           ),
@@ -230,10 +219,10 @@ class SensorsPage extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
 
                 decoration: BoxDecoration(
-                  color: AppColors.card,
+                  color: colors.surface,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: AppColors.divider,
+                    color: colors.outlineVariant,
                   ),
 
                   boxShadow: [
@@ -255,41 +244,40 @@ class SensorsPage extends StatelessWidget {
                       height: 44,
 
                       decoration: BoxDecoration(
-                        color: AppColors.primaryLight,
+                        color: colors.primaryContainer,
                         borderRadius: BorderRadius.circular(14),
                       ),
 
-                      child: const Icon(
+                      child: Icon(
                         Icons.access_time_rounded,
-                        color: AppColors.primaryDark,
+                        color: colors.primary,
                         size: 22,
                       ),
                     ),
 
                     const SizedBox(width: 13),
 
-                    const Expanded(
+                    Expanded(
                       child: Column(
-                        crossAxisAlignment:
-                        CrossAxisAlignment.start,
-
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-
                           Text(
                             "Last Updated",
                             style: TextStyle(
-                              color: AppColors.textPrimary,
+                              color: colors.onSurface,
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
 
-                          SizedBox(height: 3),
+                          const SizedBox(height: 3),
 
                           Text(
                             "Live data refreshes every 2 seconds",
                             style: TextStyle(
-                              color: AppColors.textSecondary,
+                              color: colors.onSurface.withValues(
+                                alpha: 0.65,
+                              ),
                               fontSize: 12,
                             ),
                           ),

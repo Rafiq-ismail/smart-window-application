@@ -10,13 +10,13 @@ class UserDevicesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
       appBar: AppBar(
         title: const Text("My Devices"),
         centerTitle: true,
-        backgroundColor: AppColors.background,
         elevation: 0,
       ),
 
@@ -24,7 +24,8 @@ class UserDevicesPage extends StatelessWidget {
         onPressed: () {
           _showAddDeviceDialog(context);
         },
-        backgroundColor: AppColors.primary,
+        backgroundColor: colors.primary,
+        foregroundColor: colors.onPrimary,
         icon: const Icon(Icons.add),
         label: const Text("Add Device"),
       ),
@@ -138,31 +139,26 @@ class UserDevicesPage extends StatelessWidget {
 
               return Container(
                 padding: const EdgeInsets.all(16),
-
                 decoration: BoxDecoration(
-                  color: AppColors.card,
-                  borderRadius:
-                  BorderRadius.circular(18),
+                  color: colors.surface,
+                  borderRadius: BorderRadius.circular(18),
                   border: Border.all(
-                    color: AppColors.divider,
+                    color: colors.outlineVariant,
                   ),
                 ),
-
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
                       width: 52,
                       height: 52,
-
                       decoration: BoxDecoration(
-                        color: AppColors.background,
-                        borderRadius:
-                        BorderRadius.circular(14),
+                        color: colors.primaryContainer,
+                        borderRadius: BorderRadius.circular(14),
                       ),
-
                       child: Icon(
                         Icons.developer_board_rounded,
-                        color: AppColors.primary,
+                        color: colors.primary,
                         size: 30,
                       ),
                     ),
@@ -171,17 +167,14 @@ class UserDevicesPage extends StatelessWidget {
 
                     Expanded(
                       child: Column(
-                        crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             deviceName,
-                            style: const TextStyle(
-                              color:
-                              AppColors.textPrimary,
+                            style: TextStyle(
+                              color: colors.onSurface,
                               fontSize: 16,
-                              fontWeight:
-                              FontWeight.bold,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
 
@@ -189,9 +182,10 @@ class UserDevicesPage extends StatelessWidget {
 
                           Text(
                             deviceType,
-                            style: const TextStyle(
-                              color:
-                              AppColors.textSecondary,
+                            style: TextStyle(
+                              color: colors.onSurface.withValues(
+                                alpha: 0.65,
+                              ),
                               fontSize: 13,
                             ),
                           ),
@@ -211,16 +205,14 @@ class UserDevicesPage extends StatelessWidget {
                               const SizedBox(width: 6),
 
                               Text(
-                                isOnline
-                                    ? "Online"
-                                    : "Offline",
+                                isOnline ? "Online" : "Offline",
                                 style: TextStyle(
                                   color: isOnline
                                       ? Colors.green
-                                      : AppColors
-                                      .textSecondary,
-                                  fontWeight:
-                                  FontWeight.w600,
+                                      : colors.onSurface.withValues(
+                                    alpha: 0.65,
+                                  ),
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ],
@@ -231,23 +223,24 @@ class UserDevicesPage extends StatelessWidget {
                             const SizedBox(height: 6),
                             Text(
                               "IP: $ipAddress",
-                              style: const TextStyle(
-                                color: AppColors
-                                    .textSecondary,
+                              style: TextStyle(
+                                color: colors.onSurface.withValues(
+                                  alpha: 0.65,
+                                ),
                                 fontSize: 12,
                               ),
                             ),
                           ],
 
                           if (firmwareVersion != null &&
-                              firmwareVersion
-                                  .isNotEmpty) ...[
+                              firmwareVersion.isNotEmpty) ...[
                             const SizedBox(height: 3),
                             Text(
                               "Firmware: $firmwareVersion",
-                              style: const TextStyle(
-                                color: AppColors
-                                    .textSecondary,
+                              style: TextStyle(
+                                color: colors.onSurface.withValues(
+                                  alpha: 0.65,
+                                ),
                                 fontSize: 12,
                               ),
                             ),
@@ -257,12 +250,14 @@ class UserDevicesPage extends StatelessWidget {
 
                           Text(
                             "Device ID: ${document.id}",
-                            style: const TextStyle(
-                              color:
-                              AppColors.textSecondary,
+                            style: TextStyle(
+                              color: colors.onSurface.withValues(
+                                alpha: 0.55,
+                              ),
                               fontSize: 11,
                             ),
                           ),
+
                           const SizedBox(height: 14),
 
                           SizedBox(

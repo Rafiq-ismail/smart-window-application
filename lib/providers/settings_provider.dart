@@ -36,8 +36,10 @@ class SettingsProvider extends ChangeNotifier {
   Future<void> setDarkMode(bool value) async {
     darkMode = value;
 
-    await SettingsService.instance.setDarkMode(value);
-
+    // Update UI immediately
     notifyListeners();
+
+    // Save setting
+    await SettingsService.instance.setDarkMode(value);
   }
 }
