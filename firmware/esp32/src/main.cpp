@@ -15,8 +15,6 @@
 // WIFI SETTINGS
 // ======================================================
 
-
-
 const char* FIREBASE_URL =
   "https://smartwindow-131e5-default-rtdb.asia-southeast1.firebasedatabase.app";
 
@@ -166,6 +164,66 @@ Serial.println("Trying to connect...");
 
     Serial.println("WIFI CONNECTION FAILED");
   }
+}
+
+// ======================================================
+// PUSH NOTIFICATION - RENDER + FCM
+// ======================================================
+
+void sendPushNotification(String title, String body, String type) {
+
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("NOTIFICATION FAILED -> WiFi not connected");
+    return;
+  }
+
+  WiFiClientSecure client;
+  client.setInsecure();
+
+  HTTPClient http;
+
+  const char* notificationUrl =
+      "https://smartwindow-notification-server.onrender.com/send-notification";
+
+  Serial.println();
+  Serial.println("Sending push notification to Render...");
+
+  http.setConnectTimeout(5000);
+  http.setTimeout(10000);
+
+  if (!http.begin(client, notificationUrl)) {
+    Serial.println("NOTIFICATION FAILED -> Cannot start HTTP connection");
+    return;
+  }
+
+  http.addHeader("Content-Type", "application/json");
+  http.addHeader("x-api-key", NOTIFICATION_API_KEY);
+
+  String json = "{";
+  json += "\"title\":\"" + title + "\",";
+  json += "\"body\":\"" + body + "\",";
+  json += "\"type\":\"" + type + "\"";
+  json += "}";
+
+  int httpResponseCode = http.POST(json);
+
+  Serial.print("Notification HTTP response: ");
+  Serial.println(httpResponseCode);
+
+  if (httpResponseCode >= 200 && httpResponseCode < 300) {
+
+    Serial.println("PUSH NOTIFICATION SENT");
+
+  } else {
+
+    Serial.println("PUSH NOTIFICATION FAILED");
+
+    if (httpResponseCode > 0) {
+      Serial.println(http.getString());
+    }
+  }
+
+  http.end();
 }
 
 // ======================================================
@@ -970,6 +1028,7 @@ void firebaseTask(void *parameter) {
 int mq1State = digitalRead(MQ1_PIN);
 int mq2State = digitalRead(MQ2_PIN);
 int mq3State = digitalRead(MQ3_PIN);
+int mq4State = digitalRead(MQ4_PIN);
 
 // MQ sensors active LOW:
 // LOW  = detected
@@ -1227,7 +1286,15 @@ Serial.println("AUTO CLOSE -> WINDOW 4 STEPPER");
 moveStepper(LOW, stepperSteps);
 
   Serial.println("RAIN AUTO CLOSE COMPLETE");
+Serial.println("DEBUG -> ABOUT TO SEND RAIN PUSH");
 
+sendPushNotification(
+  "Rain Detected",
+  "Rain detected. Windows have been closed automatically.",
+  "rain"
+);
+
+Serial.println("DEBUG -> RAIN PUSH FUNCTION FINISHED");
 
 }
 
@@ -1514,7 +1581,7 @@ if (command == "DATA") {
 int mq1State = digitalRead(MQ1_PIN);
 int mq2State = digitalRead(MQ2_PIN);
 int mq3State = digitalRead(MQ3_PIN);
-
+int mq4State = digitalRead(MQ4_PIN);
 
 // MQ sensors active LOW:
 // LOW  = detected
@@ -1707,7 +1774,7 @@ sendAllSensorsToFirebase(
 int mq1State = digitalRead(MQ1_PIN);
 int mq2State = digitalRead(MQ2_PIN);
 int mq3State = digitalRead(MQ3_PIN);
-
+int mq4State = digitalRead(MQ4_PIN);
 
 Serial.print("MQ Room 1: ");
 Serial.print(mq1State);
@@ -1718,7 +1785,8 @@ Serial.print(mq2State);
 Serial.print(" | MQ Room 3: ");
 Serial.print(mq3State);
 
-
+Serial.print(" | MQ Room 4: ");
+Serial.println(mq4State);
 
 delay(1000);
 }
