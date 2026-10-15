@@ -44,35 +44,33 @@ class _DashboardPageState extends State<DashboardPage> {
     // Manual command -> disable Auto Mode first
     await SensorService.instance.setAutoMode(false);
 
-    // Open all 3 physical actuators
+    // Open Window 1 and Window 2
     final window1Success =
     await Esp32ControlService.instance.openWindow1();
 
     final window2Success =
     await Esp32ControlService.instance.openWindow2();
 
-    final window3Success =
-    await Esp32ControlService.instance.openWindow3();
-
-    final stepperSuccess =
-    await Esp32ControlService.instance.openStepperWindow();
-
-    if (!window1Success ||
-        !window2Success ||
-        !window3Success ||
-        !stepperSuccess) {
+    if (!window1Success || !window2Success) {
       throw Exception('One or more windows failed to open');
     }
 
-    // Update Firestore after physical movement succeeds
+    // Update Firestore for Window 1 and Window 2 only
     final snapshot =
     await WindowService.instance.getUserWindows().first;
 
     for (final document in snapshot.docs) {
-      await WindowService.instance.updateWindowState(
-        windowId: document.id,
-        openingPercentage: 100,
-      );
+      final data = document.data();
+
+      final actuatorChannel =
+          (data['actuatorChannel'] as num?)?.toInt() ?? 0;
+
+      if (actuatorChannel == 1 || actuatorChannel == 2) {
+        await WindowService.instance.updateWindowState(
+          windowId: document.id,
+          openingPercentage: 100,
+        );
+      }
     }
   }
 
@@ -80,35 +78,33 @@ class _DashboardPageState extends State<DashboardPage> {
     // Manual command -> disable Auto Mode first
     await SensorService.instance.setAutoMode(false);
 
-    // Close all 3 physical actuators
+    // Close Window 1 and Window 2
     final window1Success =
     await Esp32ControlService.instance.closeWindow1();
 
     final window2Success =
     await Esp32ControlService.instance.closeWindow2();
 
-    final window3Success =
-    await Esp32ControlService.instance.closeWindow3();
-
-    final stepperSuccess =
-    await Esp32ControlService.instance.closeStepperWindow();
-
-    if (!window1Success ||
-        !window2Success ||
-        !window3Success ||
-        !stepperSuccess) {
+    if (!window1Success || !window2Success) {
       throw Exception('One or more windows failed to close');
     }
 
-    // Update Firestore after physical movement succeeds
+    // Update Firestore for Window 1 and Window 2 only
     final snapshot =
     await WindowService.instance.getUserWindows().first;
 
     for (final document in snapshot.docs) {
-      await WindowService.instance.updateWindowState(
-        windowId: document.id,
-        openingPercentage: 0,
-      );
+      final data = document.data();
+
+      final actuatorChannel =
+          (data['actuatorChannel'] as num?)?.toInt() ?? 0;
+
+      if (actuatorChannel == 1 || actuatorChannel == 2) {
+        await WindowService.instance.updateWindowState(
+          windowId: document.id,
+          openingPercentage: 0,
+        );
+      }
     }
   }
 
