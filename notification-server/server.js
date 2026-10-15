@@ -11,6 +11,11 @@ const {
   getMessaging,
 } = require("firebase-admin/messaging");
 
+const {
+  getFirestore,
+  FieldValue,
+} = require("firebase-admin/firestore");
+
 const app = express();
 
 app.use(express.json());
@@ -33,6 +38,8 @@ initializeApp({
   projectId: "smartwindow-131e5",
 });
 
+const db = getFirestore();
+
 // Test route
 app.get("/", (req, res) => {
   res.send("SmartWindow Notification Server is running.");
@@ -41,14 +48,36 @@ app.get("/", (req, res) => {
 // Send push notification
 app.post("/send-notification", verifyApiKey, async (req, res) => {
   try {
-    const { title, body, type } = req.body;
+    const { title, body, type, deviceId } = req.body;
 
-    if (!title || !body) {
+    if (!title || !body || !deviceId) {
       return res.status(400).json({
         success: false,
-        message: "title and body are required",
+        message: "title, body and deviceId are required",
       });
     }
+
+const deviceDoc = await db
+    .collection("devices")
+    .doc(deviceId)
+    .get();
+
+if (!deviceDoc.exists) {
+  return res.status(404).json({
+    success: false,
+    message: "Device not found",
+  });
+}
+
+const deviceData = deviceDoc.data();
+const userId = deviceData.userId;
+
+if (!userId) {
+  return res.status(400).json({
+    success: false,
+    message: "Device has no owner",
+  });
+}
 
     const message = {
       notification: {
@@ -66,6 +95,19 @@ app.post("/send-notification", verifyApiKey, async (req, res) => {
     const response = await getMessaging().send(message);
 
     console.log("Notification sent:", response);
+
+    await db.collection("notifications").add({
+      userId: userId,
+      deviceId: deviceId,
+      title: title,
+      message: body,
+      type: type || "general",
+      createdAt: FieldValue.serverTimestamp(),
+      read: false,
+      source: "esp32",
+    });
+
+    console.log("Notification saved to Firestore");
 
     return res.status(200).json({
       success: true,
