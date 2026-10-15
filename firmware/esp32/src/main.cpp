@@ -379,7 +379,78 @@ void actuatorRetract(int rpwm, int lpwm) {
   digitalWrite(rpwm, LOW);
   digitalWrite(lpwm, LOW);
 }
+// ======================================================
+// DOUBLE PANEL WINDOW - ACTUATOR 1 + ACTUATOR 2
+// ======================================================
 
+void doubleWindowOpen() {
+
+  Serial.println("DOUBLE WINDOW -> OPENING BOTH PANELS");
+
+  // Stop both actuators first
+  digitalWrite(A1_RPWM, LOW);
+  digitalWrite(A1_LPWM, LOW);
+
+  digitalWrite(A2_RPWM, LOW);
+  digitalWrite(A2_LPWM, LOW);
+
+  delay(ACTUATOR_DIRECTION_DELAY);
+
+  // Start Actuator 1
+  digitalWrite(A1_LPWM, LOW);
+  digitalWrite(A1_RPWM, HIGH);
+
+  // Start Actuator 2
+  digitalWrite(A2_LPWM, LOW);
+  digitalWrite(A2_RPWM, HIGH);
+
+  // Both actuators are moving during this same delay
+  delay(ACTUATOR_MOVE_TIME);
+
+  // Stop both together
+  digitalWrite(A1_RPWM, LOW);
+  digitalWrite(A1_LPWM, LOW);
+
+  digitalWrite(A2_RPWM, LOW);
+  digitalWrite(A2_LPWM, LOW);
+
+  Serial.println("DOUBLE WINDOW -> OPEN COMPLETE");
+}
+
+
+void doubleWindowClose() {
+
+  Serial.println("DOUBLE WINDOW -> CLOSING BOTH PANELS");
+
+  // Stop both actuators first
+  digitalWrite(A1_RPWM, LOW);
+  digitalWrite(A1_LPWM, LOW);
+
+  digitalWrite(A2_RPWM, LOW);
+  digitalWrite(A2_LPWM, LOW);
+
+  delay(ACTUATOR_DIRECTION_DELAY);
+
+  // Start Actuator 1
+  digitalWrite(A1_RPWM, LOW);
+  digitalWrite(A1_LPWM, HIGH);
+
+  // Start Actuator 2
+  digitalWrite(A2_RPWM, LOW);
+  digitalWrite(A2_LPWM, HIGH);
+
+  // Both actuators are moving during this same delay
+  delay(ACTUATOR_MOVE_TIME);
+
+  // Stop both together
+  digitalWrite(A1_RPWM, LOW);
+  digitalWrite(A1_LPWM, LOW);
+
+  digitalWrite(A2_RPWM, LOW);
+  digitalWrite(A2_LPWM, LOW);
+
+  Serial.println("DOUBLE WINDOW -> CLOSE COMPLETE");
+}
 void actuatorMoveToPosition(
     int rpwm,
     int lpwm,
@@ -1668,7 +1739,26 @@ sendAllSensorsToFirebase(
     );
   }
 }
+// DOUBLE PANEL WINDOW TEST
+else if (command == "DO") {
 
+  Serial.println();
+  Serial.println("DOUBLE WINDOW -> OPEN TEST");
+
+  doubleWindowOpen();
+
+  Serial.println("DOUBLE WINDOW -> OPEN TEST COMPLETE");
+}
+
+else if (command == "DC") {
+
+  Serial.println();
+  Serial.println("DOUBLE WINDOW -> CLOSE TEST");
+
+  doubleWindowClose();
+
+  Serial.println("DOUBLE WINDOW -> CLOSE TEST COMPLETE");
+}
     // ACTUATOR 1
     else if (command == "1E") {
 
