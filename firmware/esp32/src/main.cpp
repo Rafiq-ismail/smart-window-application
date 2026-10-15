@@ -77,7 +77,7 @@ DHT dht4(DHT4_PIN, DHTTYPE);
 #define STEP_PIN 23
 #define DIR_PIN 18
 
-int stepperSteps = 200;
+int stepperSteps = 800;
 int stepDelay = 3000;
 
 // ======================================================
@@ -1325,6 +1325,16 @@ if (currentSmokeState && !lastSmokeState && autoModeEnabled) {
   window1Position = 0;
 
   Serial.println("SMOKE AUTO CLOSE COMPLETE");
+
+Serial.println("DEBUG -> ABOUT TO SEND ROOM 1 SMOKE PUSH");
+
+sendPushNotification(
+  "Smoke Detected - Room 1",
+  "Smoke or gas detected in Room 1. Window 1 has been closed automatically.",
+  "smoke"
+);
+
+Serial.println("DEBUG -> ROOM 1 SMOKE PUSH FINISHED");
 }
 
 // Save current state for edge detection
@@ -1355,6 +1365,16 @@ if (currentSmokeState2 && !lastSmokeState2 && autoModeEnabled) {
   window2Position = 0;
 
   Serial.println("ROOM 2 SMOKE AUTO CLOSE COMPLETE");
+
+Serial.println("DEBUG -> ABOUT TO SEND ROOM 2 SMOKE PUSH");
+
+sendPushNotification(
+  "Smoke Detected - Room 2",
+  "Smoke or gas detected in Room 2. Window 2 has been closed automatically.",
+  "smoke"
+);
+
+Serial.println("DEBUG -> ROOM 2 SMOKE PUSH FINISHED");
 }
 
 // Save current state for edge detection
@@ -1389,6 +1409,16 @@ Serial.println("AUTO CLOSE -> WINDOW 4 STEPPER");
 moveStepper(LOW, stepperSteps);
 
 Serial.println("ROOM 3 SMOKE AUTO CLOSE W3 + W4 COMPLETE");
+
+Serial.println("DEBUG -> ABOUT TO SEND ROOM 3 SMOKE PUSH");
+
+sendPushNotification(
+  "Smoke Detected - Room 3",
+  "Smoke or gas detected in Room 3. Windows 3 and 4 have been closed automatically.",
+  "smoke"
+);
+
+Serial.println("DEBUG -> ROOM 3 SMOKE PUSH FINISHED");
 }
 
 // Save current state for edge detection
@@ -1442,7 +1472,17 @@ if (millis() - lastTemperatureCheck >= 5000) {
 
       highTemperatureTriggered1 = true;
 
-      Serial.println("WINDOW 1 TEMPERATURE AUTO OPEN COMPLETE");
+Serial.println("WINDOW 1 TEMPERATURE AUTO OPEN COMPLETE");
+
+Serial.println("DEBUG -> ABOUT TO SEND ROOM 1 HIGH TEMP PUSH");
+
+sendPushNotification(
+  "High Temperature - Room 1",
+  "High temperature detected in Room 1. Window 1 has been opened automatically.",
+  "temperature"
+);
+
+Serial.println("DEBUG -> ROOM 1 HIGH TEMP PUSH FINISHED");
     }
   }
 
@@ -1476,7 +1516,17 @@ if (millis() - lastTemperatureCheck >= 5000) {
 
       highTemperatureTriggered2 = true;
 
-      Serial.println("WINDOW 2 TEMPERATURE AUTO OPEN COMPLETE");
+Serial.println("WINDOW 2 TEMPERATURE AUTO OPEN COMPLETE");
+
+Serial.println("DEBUG -> ABOUT TO SEND ROOM 2 HIGH TEMP PUSH");
+
+sendPushNotification(
+  "High Temperature - Room 2",
+  "High temperature detected in Room 2. Window 2 has been opened automatically.",
+  "temperature"
+);
+
+Serial.println("DEBUG -> ROOM 2 HIGH TEMP PUSH FINISHED");
     }
   }
 
@@ -1519,6 +1569,16 @@ moveStepper(HIGH, stepperSteps);
 highTemperatureTriggered3 = true;
 
 Serial.println("WINDOW 3 + WINDOW 4 TEMPERATURE AUTO OPEN COMPLETE");
+
+Serial.println("DEBUG -> ABOUT TO SEND ROOM 3 HIGH TEMP PUSH");
+
+sendPushNotification(
+  "High Temperature - Room 3",
+  "High temperature detected in Room 3. Windows 3 and 4 have been opened automatically.",
+  "temperature"
+);
+
+Serial.println("DEBUG -> ROOM 3 HIGH TEMP PUSH FINISHED");
     }
   }
 }
