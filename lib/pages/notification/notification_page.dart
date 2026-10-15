@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../services/notification_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class NotificationsPage extends StatelessWidget {
   const NotificationsPage({super.key});
@@ -33,7 +34,9 @@ class NotificationsPage extends StatelessWidget {
         subtitle: Text(subtitle),
         trailing: Text(
           time,
-          style: const TextStyle(fontSize: 12),
+          style: const TextStyle(
+            fontSize: 12,
+          ),
         ),
       ),
     );
@@ -41,69 +44,102 @@ class NotificationsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      return const Scaffold(
+        body: Center(
+          child: Text(
+            'Please login to view notifications.',
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
-
-        title: const Text("Notifications"),
-
+        title: const Text('Notifications'),
         centerTitle: true,
-
-        actions: [
-
-          IconButton(
-
-            icon: const Icon(Icons.delete),
-
-            onPressed: () {
-
-              NotificationService.instance.clearNotifications();
-
-            },
-
-          ),
-
-        ],
-
       ),
-      body: AnimatedBuilder(
 
-        animation: NotificationService.instance,
+      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: FirebaseFirestore.instance
+            .collection('notifications')
+            .where(
+          'userId',
+          isEqualTo: user.uid,
+        )
+            .orderBy(
+          'createdAt',
+          descending: true,
+        )
+            .snapshots(),
 
-        builder: (context, child) {
+        builder: (context, snapshot) {
+          if (snapshot.connectionState ==
+              ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text(
+                  'Failed to load notifications: '
+                      '${snapshot.error}',
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            );
+          }
+
+          final docs = snapshot.data?.docs ?? [];
+
+          if (docs.isEmpty) {
+            return const Center(
+              child: Text(
+                'No notifications yet.',
+              ),
+            );
+          }
 
           return ListView.builder(
-
             padding: const EdgeInsets.all(20),
-
-            itemCount:
-            NotificationService.instance.notifications.length,
-
+            itemCount: docs.length,
             itemBuilder: (context, index) {
+              final data = docs[index].data();
 
-              final item =
-              NotificationService.instance.notifications[index];
+              final String title =
+                  data['title'] ?? 'Notification';
+
+              final String message =
+                  data['message'] ?? '';
+
+              final Timestamp? timestamp =
+              data['createdAt'] as Timestamp?;
+
+              final DateTime? dateTime =
+              timestamp?.toDate();
+
+              final String formattedTime =
+              dateTime == null
+                  ? '--:--'
+                  : '${dateTime.hour.toString().padLeft(2, '0')}:'
+                  '${dateTime.minute.toString().padLeft(2, '0')}';
 
               return buildNotification(
-
                 icon: Icons.notifications,
-
                 color: Colors.blue,
-
-                title: item.title,
-
-                subtitle: item.message,
-
-                time:
-                "${item.time.hour}:${item.time.minute.toString().padLeft(2, '0')}",
-
+                title: title,
+                subtitle: message,
+                time: formattedTime,
               );
-
             },
-
           );
-
         },
-
       ),
     );
   }

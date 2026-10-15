@@ -199,11 +199,12 @@ void sendPushNotification(String title, String body, String type) {
   http.addHeader("Content-Type", "application/json");
   http.addHeader("x-api-key", NOTIFICATION_API_KEY);
 
-  String json = "{";
-  json += "\"title\":\"" + title + "\",";
-  json += "\"body\":\"" + body + "\",";
-  json += "\"type\":\"" + type + "\"";
-  json += "}";
+String json = "{";
+json += "\"title\":\"" + title + "\",";
+json += "\"body\":\"" + body + "\",";
+json += "\"type\":\"" + type + "\",";
+json += "\"deviceId\":\"esp32_01\"";
+json += "}";
 
   int httpResponseCode = http.POST(json);
 
