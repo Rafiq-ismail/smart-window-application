@@ -79,7 +79,8 @@ DHT dht4(DHT4_PIN, DHTTYPE);
 
 int stepperSteps = 800;
 int stepDelay = 3000;
-
+void moveStepper(bool direction, int steps);
+void stepperMoveToPosition(int targetPosition);
 // ======================================================
 // ACTUATOR SETTINGS
 // ======================================================
@@ -450,6 +451,74 @@ void doubleWindowClose() {
   digitalWrite(A2_LPWM, LOW);
 
   Serial.println("DOUBLE WINDOW -> CLOSE COMPLETE");
+}void doubleWindowMoveToPosition(int targetPosition) {
+
+  // Keep target between 0% and 100%
+  targetPosition = constrain(targetPosition, 0, 100);
+
+  int difference = targetPosition - window1Position;
+
+  // Already at target
+  if (difference == 0) {
+    Serial.println("DOUBLE WINDOW -> Already at target position");
+    return;
+  }
+
+  // Calculate movement duration
+  unsigned long movementTime =
+      (ACTUATOR_MOVE_TIME * abs(difference)) / 100;
+
+  // Stop both actuators first
+  digitalWrite(A1_RPWM, LOW);
+  digitalWrite(A1_LPWM, LOW);
+
+  digitalWrite(A2_RPWM, LOW);
+  digitalWrite(A2_LPWM, LOW);
+
+  delay(ACTUATOR_DIRECTION_DELAY);
+
+  if (difference > 0) {
+
+    Serial.print("DOUBLE WINDOW -> OPENING TO ");
+    Serial.print(targetPosition);
+    Serial.println("%");
+
+    // A1 + A2 OPEN together
+    digitalWrite(A1_LPWM, LOW);
+    digitalWrite(A1_RPWM, HIGH);
+
+    digitalWrite(A2_LPWM, LOW);
+    digitalWrite(A2_RPWM, HIGH);
+
+  } else {
+
+    Serial.print("DOUBLE WINDOW -> CLOSING TO ");
+    Serial.print(targetPosition);
+    Serial.println("%");
+
+    // A1 + A2 CLOSE together
+    digitalWrite(A1_RPWM, LOW);
+    digitalWrite(A1_LPWM, HIGH);
+
+    digitalWrite(A2_RPWM, LOW);
+    digitalWrite(A2_LPWM, HIGH);
+  }
+
+  // Both move simultaneously
+  delay(movementTime);
+
+  // Stop both
+  digitalWrite(A1_RPWM, LOW);
+  digitalWrite(A1_LPWM, LOW);
+
+  digitalWrite(A2_RPWM, LOW);
+  digitalWrite(A2_LPWM, LOW);
+
+  window1Position = targetPosition;
+
+  Serial.print("DOUBLE WINDOW -> Estimated position: ");
+  Serial.print(window1Position);
+  Serial.println("%");
 }
 void actuatorMoveToPosition(
     int rpwm,
@@ -553,7 +622,7 @@ void handleWindow1Open() {
     return;
   }
 
-  actuatorExtend(A1_RPWM, A1_LPWM);
+  doubleWindowOpen();
 
   window1Position = 100;
 
@@ -587,7 +656,7 @@ void handleWindow2Open() {
     return;
   }
 
-  actuatorExtend(A2_RPWM, A2_LPWM);
+  actuatorExtend(A3_RPWM, A3_LPWM);
 
   window2Position = 100;
 
@@ -625,8 +694,8 @@ void handleWindow2Position() {
   Serial.println("%");
 
   actuatorMoveToPosition(
-    A2_RPWM,
-    A2_LPWM,
+    A3_RPWM,
+    A3_LPWM,
     window2Position,
     targetPosition
   );
@@ -646,7 +715,7 @@ void handleWindow2Position() {
 void handleWindow2Close() {
   Serial.println("HTTP -> WINDOW 2 CLOSE");
 
-  actuatorRetract(A2_RPWM, A2_LPWM);
+  actuatorRetract(A3_RPWM, A3_LPWM);
 
   window2Position = 0;
 
@@ -676,7 +745,7 @@ void handleWindow3Open() {
     return;
   }
 
-  actuatorExtend(A3_RPWM, A3_LPWM);
+moveStepper(HIGH, stepperSteps);
 
   window3Position = 100;
 
@@ -690,7 +759,7 @@ void handleWindow3Open() {
 void handleWindow3Close() {
   Serial.println("HTTP -> WINDOW 3 CLOSE");
 
-  actuatorRetract(A3_RPWM, A3_LPWM);
+  moveStepper(LOW, stepperSteps);
 
   window3Position = 0;
 
@@ -723,12 +792,7 @@ void handleWindow3Position() {
   Serial.print(targetPosition);
   Serial.println("%");
 
-  actuatorMoveToPosition(
-    A3_RPWM,
-    A3_LPWM,
-    window3Position,
-    targetPosition
-  );
+ stepperMoveToPosition(targetPosition);
 
   String response =
       "Window 3 Position = " +
@@ -746,7 +810,7 @@ void handleWindow1Close() {
 
   Serial.println("HTTP -> WINDOW 1 CLOSE");
 
-  actuatorRetract(A1_RPWM, A1_LPWM);
+doubleWindowClose();
 
   window1Position = 0;
 
@@ -779,22 +843,7 @@ void handleWindow1Position() {
   Serial.print(targetPosition);
   Serial.println("%");
 
- if (targetPosition == 0) {
-
-  Serial.println("W1 -> FULL CLOSE CALIBRATION");
-
-  actuatorRetract(A1_RPWM, A1_LPWM);
-  window1Position = 0;
-
-} else {
-
-  actuatorMoveToPosition(
-    A1_RPWM,
-    A1_LPWM,
-    window1Position,
-    targetPosition
-  );
-}
+doubleWindowMoveToPosition(targetPosition);
 
   String response =
       "Window 1 Position = " +
@@ -881,7 +930,43 @@ void moveStepper(bool direction, int steps) {
     delayMicroseconds(stepDelay);
   }
 }
+void stepperMoveToPosition(int targetPosition) {
 
+  targetPosition = constrain(targetPosition, 0, 100);
+
+  int difference = targetPosition - window3Position;
+
+  if (difference == 0) {
+    Serial.println("STEPPER WINDOW -> Already at target position");
+    return;
+  }
+
+  int stepsToMove =
+      (stepperSteps * abs(difference)) / 100;
+
+  if (difference > 0) {
+
+    Serial.print("STEPPER WINDOW -> OPENING TO ");
+    Serial.print(targetPosition);
+    Serial.println("%");
+
+    moveStepper(HIGH, stepsToMove);
+
+  } else {
+
+    Serial.print("STEPPER WINDOW -> CLOSING TO ");
+    Serial.print(targetPosition);
+    Serial.println("%");
+
+    moveStepper(LOW, stepsToMove);
+  }
+
+  window3Position = targetPosition;
+
+  Serial.print("STEPPER WINDOW -> Estimated position: ");
+  Serial.print(window3Position);
+  Serial.println("%");
+}
 // ======================================================
 // SENSOR DISPLAY
 // ======================================================
@@ -1338,24 +1423,20 @@ if (currentRainState && !lastRainState && autoModeEnabled) {
   Serial.println("RAIN DETECTED -> AUTO CLOSE");
   Serial.println("================================");
 
-  // Window 1
-  Serial.println("AUTO CLOSE -> WINDOW 1");
-  actuatorRetract(A1_RPWM, A1_LPWM);
-  window1Position = 0;
+ // Window 1 - Double Panel (A1 + A2)
+Serial.println("AUTO CLOSE -> WINDOW 1 DOUBLE PANEL");
+doubleWindowClose();
+window1Position = 0;
 
-  // Window 2
-  Serial.println("AUTO CLOSE -> WINDOW 2");
-  actuatorRetract(A2_RPWM, A2_LPWM);
-  window2Position = 0;
+// Window 2 - Single Panel (A3)
+Serial.println("AUTO CLOSE -> WINDOW 2");
+actuatorRetract(A3_RPWM, A3_LPWM);
+window2Position = 0;
 
-  // Window 3
-  Serial.println("AUTO CLOSE -> WINDOW 3");
-  actuatorRetract(A3_RPWM, A3_LPWM);
-  window3Position = 0;
-
-    // Window 4 - Stepper
-Serial.println("AUTO CLOSE -> WINDOW 4 STEPPER");
+// Window 3 - Sliding Window (Stepper)
+Serial.println("AUTO CLOSE -> WINDOW 3 STEPPER");
 moveStepper(LOW, stepperSteps);
+window3Position = 0;
 
   Serial.println("RAIN AUTO CLOSE COMPLETE");
 Serial.println("DEBUG -> ABOUT TO SEND RAIN PUSH");
@@ -1393,7 +1474,7 @@ if (currentSmokeState && !lastSmokeState && autoModeEnabled) {
 
   Serial.println("AUTO CLOSE -> WINDOW 1");
 
-  actuatorRetract(A1_RPWM, A1_LPWM);
+  doubleWindowClose();
   window1Position = 0;
 
   Serial.println("SMOKE AUTO CLOSE COMPLETE");
@@ -1433,7 +1514,7 @@ if (currentSmokeState2 && !lastSmokeState2 && autoModeEnabled) {
 
   Serial.println("AUTO CLOSE -> WINDOW 2");
 
-  actuatorRetract(A2_RPWM, A2_LPWM);
+  actuatorRetract(A3_RPWM, A3_LPWM);
   window2Position = 0;
 
   Serial.println("ROOM 2 SMOKE AUTO CLOSE COMPLETE");
@@ -1471,22 +1552,18 @@ if (currentSmokeState3 && !lastSmokeState3 && autoModeEnabled) {
   Serial.println("SMOKE/GAS ROOM 3 -> AUTO CLOSE");
   Serial.println("================================");
 
-Serial.println("AUTO CLOSE -> WINDOW 3");
-
-actuatorRetract(A3_RPWM, A3_LPWM);
-window3Position = 0;
-
-Serial.println("AUTO CLOSE -> WINDOW 4 STEPPER");
+Serial.println("AUTO CLOSE -> WINDOW 3 STEPPER");
 
 moveStepper(LOW, stepperSteps);
+window3Position = 0;
 
-Serial.println("ROOM 3 SMOKE AUTO CLOSE W3 + W4 COMPLETE");
+Serial.println("ROOM 3 SMOKE AUTO CLOSE COMPLETE");
 
 Serial.println("DEBUG -> ABOUT TO SEND ROOM 3 SMOKE PUSH");
 
 sendPushNotification(
   "Smoke Detected - Room 3",
-  "Smoke or gas detected in Room 3. Windows 3 and 4 have been closed automatically.",
+  "Smoke or gas detected in Room 3. Window 3 has been closed automatically.",
   "smoke"
 );
 
@@ -1539,7 +1616,7 @@ if (millis() - lastTemperatureCheck >= 5000) {
       Serial.println();
       Serial.println("HIGH TEMPERATURE ROOM 1 -> AUTO OPEN W1");
 
-      actuatorExtend(A1_RPWM, A1_LPWM);
+      doubleWindowOpen();
       window1Position = 100;
 
       highTemperatureTriggered1 = true;
@@ -1583,7 +1660,7 @@ Serial.println("DEBUG -> ROOM 1 HIGH TEMP PUSH FINISHED");
       Serial.println();
       Serial.println("HIGH TEMPERATURE ROOM 2 -> AUTO OPEN W2");
 
-      actuatorExtend(A2_RPWM, A2_LPWM);
+      actuatorExtend(A3_RPWM, A3_LPWM);
       window2Position = 100;
 
       highTemperatureTriggered2 = true;
@@ -1625,28 +1702,22 @@ Serial.println("DEBUG -> ROOM 2 HIGH TEMP PUSH FINISHED");
     ) {
 
       Serial.println();
-     Serial.println("HIGH TEMPERATURE ROOM 3 -> AUTO OPEN W3 + W4");
+     Serial.println("HIGH TEMPERATURE ROOM 3 -> AUTO OPEN W3");
 
-// Window 3 - Linear Actuator
-Serial.println("AUTO OPEN -> WINDOW 3");
-
-actuatorExtend(A3_RPWM, A3_LPWM);
-window3Position = 100;
-
-// Window 4 - Stepper
-Serial.println("AUTO OPEN -> WINDOW 4 STEPPER");
+Serial.println("AUTO OPEN -> WINDOW 3 STEPPER");
 
 moveStepper(HIGH, stepperSteps);
+window3Position = 100;
 
 highTemperatureTriggered3 = true;
 
-Serial.println("WINDOW 3 + WINDOW 4 TEMPERATURE AUTO OPEN COMPLETE");
+Serial.println("WINDOW 3 TEMPERATURE AUTO OPEN COMPLETE");
 
 Serial.println("DEBUG -> ABOUT TO SEND ROOM 3 HIGH TEMP PUSH");
 
 sendPushNotification(
   "High Temperature - Room 3",
-  "High temperature detected in Room 3. Windows 3 and 4 have been opened automatically.",
+  "High temperature detected in Room 3. Window 3 has been opened automatically.",
   "temperature"
 );
 
@@ -1766,7 +1837,7 @@ else if (command == "DC") {
 
       Serial.println("ACTUATOR 1 -> EXTEND");
 
-      actuatorExtend(A1_RPWM, A1_LPWM);
+      doubleWindowOpen();
 
       Serial.println("ACTUATOR 1 -> AUTO STOP");
     }
