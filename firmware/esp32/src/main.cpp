@@ -100,6 +100,33 @@ int window3Position = 0;
 bool autoModeEnabled = true;
 
 // ======================================================
+// MQ ANALOG BASELINE
+// ======================================================
+
+int mq1Baseline = 0;
+int mq2Baseline = 0;
+int mq3Baseline = 0;
+
+bool mqBaselineReady = false;
+
+// MQ consecutive detection
+int mq1HighCount = 0;
+int mq2HighCount = 0;
+int mq3HighCount = 0;
+
+bool mq1SmokeState = false;
+bool mq2SmokeState = false;
+bool mq3SmokeState = false;
+
+const int MQ_REQUIRED_HIGH_COUNT = 2;
+
+int mq1LowCount = 0;
+int mq2LowCount = 0;
+int mq3LowCount = 0;
+
+const int MQ_REQUIRED_LOW_COUNT = 2;
+
+// ======================================================
 // WIFI FUNCTION
 // ======================================================
 
@@ -1153,11 +1180,70 @@ void showCommands() {
   Serial.println("======================================");
 }
 
+
+int readMQAverage(int pin) {
+  const int sampleCount = 10;
+  long total = 0;
+
+  for (int i = 0; i < sampleCount; i++) {
+    total += analogRead(pin);
+    delay(5);
+  }
+
+  return total / sampleCount;
+}
+
+void calibrateMQBaseline() {
+
+  Serial.println();
+  Serial.println("======================================");
+  Serial.println("CALIBRATING MQ BASELINE");
+  Serial.println("Keep air around sensors clean...");
+  Serial.println("======================================");
+
+  long total1 = 0;
+  long total2 = 0;
+  long total3 = 0;
+
+  const int calibrationSamples = 20;
+
+  for (int i = 0; i < calibrationSamples; i++) {
+
+    total1 += readMQAverage(MQ1_PIN);
+    total2 += readMQAverage(MQ2_PIN);
+    total3 += readMQAverage(MQ3_PIN);
+
+    delay(100);
+  }
+
+  mq1Baseline = total1 / calibrationSamples;
+  mq2Baseline = total2 / calibrationSamples;
+  mq3Baseline = total3 / calibrationSamples;
+
+  mqBaselineReady = true;
+
+  Serial.println();
+  Serial.println("========== MQ BASELINE ==========");
+
+  Serial.print("MQ1 Baseline: ");
+  Serial.println(mq1Baseline);
+
+  Serial.print("MQ2 Baseline: ");
+  Serial.println(mq2Baseline);
+
+  Serial.print("MQ3 Baseline: ");
+  Serial.println(mq3Baseline);
+
+  Serial.println("=================================");
+}
+
 // ======================================================
 // FIREBASE BACKGROUND TASK
 // ======================================================
 
 TaskHandle_t firebaseTaskHandle = NULL;
+
+
 
 void firebaseTask(void *parameter) {
 
@@ -1182,17 +1268,203 @@ void firebaseTask(void *parameter) {
         !isnan(t3) && !isnan(h3)
       ) {
 
-int mq1State = digitalRead(MQ1_PIN);
-int mq2State = digitalRead(MQ2_PIN);
-int mq3State = digitalRead(MQ3_PIN);
-int mq4State = digitalRead(MQ4_PIN);
+int mq1Raw = readMQAverage(MQ1_PIN);
+int mq2Raw = readMQAverage(MQ2_PIN);
+int mq3Raw = readMQAverage(MQ3_PIN);
 
-// MQ sensors active LOW:
-// LOW  = detected
-// HIGH = normal
-bool smokeDetected1 = (mq1State == LOW);
-bool smokeDetected2 = (mq2State == LOW);
-bool smokeDetected3 = (mq3State == LOW);
+Serial.println();
+Serial.println("========== MQ ANALOG DATA ==========");
+
+Serial.print("MQ1 Room 1: ");
+Serial.println(mq1Raw);
+
+Serial.print("MQ2 Room 2: ");
+Serial.println(mq2Raw);
+
+Serial.print("MQ3 Room 3: ");
+Serial.println(mq3Raw);
+
+Serial.println("====================================");
+
+
+
+// ======================================================
+// MQ DYNAMIC DELTA DETECTION
+// ======================================================
+
+const int MQ1_DELTA_THRESHOLD = 12;
+const int MQ2_DELTA_THRESHOLD = 15;
+const int MQ3_DELTA_THRESHOLD = 10;
+
+int mq1Delta = mq1Raw - mq1Baseline;
+int mq2Delta = mq2Raw - mq2Baseline;
+int mq3Delta = mq3Raw - mq3Baseline;
+
+// ======================================================
+// MQ CONSECUTIVE DETECTION
+// ======================================================
+
+if (mqBaselineReady) {
+
+  // ================= MQ1 =================
+  if (!mq1SmokeState) {
+
+    // Currently NO smoke -> check for smoke
+    if (mq1Delta >= MQ1_DELTA_THRESHOLD) {
+      mq1HighCount++;
+    } else {
+      mq1HighCount = 0;
+    }
+
+    mq1LowCount = 0;
+
+    // Need 2 HIGH readings to activate
+    if (mq1HighCount >= MQ_REQUIRED_HIGH_COUNT) {
+      mq1SmokeState = true;
+      mq1HighCount = 0;
+      mq1LowCount = 0;
+    }
+
+  } else {
+
+    // Currently smoke -> check for recovery
+    if (mq1Delta < MQ1_DELTA_THRESHOLD) {
+      mq1LowCount++;
+    } else {
+      mq1LowCount = 0;
+    }
+
+    mq1HighCount = 0;
+
+    // Need 2 LOW readings to clear
+    if (mq1LowCount >= MQ_REQUIRED_LOW_COUNT) {
+      mq1SmokeState = false;
+      mq1HighCount = 0;
+      mq1LowCount = 0;
+    }
+  }
+
+
+  // ================= MQ2 =================
+  if (!mq2SmokeState) {
+
+    if (mq2Delta >= MQ2_DELTA_THRESHOLD) {
+      mq2HighCount++;
+    } else {
+      mq2HighCount = 0;
+    }
+
+    mq2LowCount = 0;
+
+    if (mq2HighCount >= MQ_REQUIRED_HIGH_COUNT) {
+      mq2SmokeState = true;
+      mq2HighCount = 0;
+      mq2LowCount = 0;
+    }
+
+  } else {
+
+    if (mq2Delta < MQ2_DELTA_THRESHOLD) {
+      mq2LowCount++;
+    } else {
+      mq2LowCount = 0;
+    }
+
+    mq2HighCount = 0;
+
+    if (mq2LowCount >= MQ_REQUIRED_LOW_COUNT) {
+      mq2SmokeState = false;
+      mq2HighCount = 0;
+      mq2LowCount = 0;
+    }
+  }
+
+
+  // ================= MQ3 =================
+  if (!mq3SmokeState) {
+
+    if (mq3Delta >= MQ3_DELTA_THRESHOLD) {
+      mq3HighCount++;
+    } else {
+      mq3HighCount = 0;
+    }
+
+    mq3LowCount = 0;
+
+    if (mq3HighCount >= MQ_REQUIRED_HIGH_COUNT) {
+      mq3SmokeState = true;
+      mq3HighCount = 0;
+      mq3LowCount = 0;
+    }
+
+  } else {
+
+    if (mq3Delta < MQ3_DELTA_THRESHOLD) {
+      mq3LowCount++;
+    } else {
+      mq3LowCount = 0;
+    }
+
+    mq3HighCount = 0;
+
+    if (mq3LowCount >= MQ_REQUIRED_LOW_COUNT) {
+      mq3SmokeState = false;
+      mq3HighCount = 0;
+      mq3LowCount = 0;
+    }
+  }
+}
+
+bool smokeDetected1 = mq1SmokeState;
+bool smokeDetected2 = mq2SmokeState;
+bool smokeDetected3 = mq3SmokeState;
+
+Serial.println();
+Serial.println("========== MQ ANALOG STATUS ==========");
+
+// MQ1
+Serial.print("MQ1: ");
+Serial.print(mq1Raw);
+Serial.print(" | Baseline: ");
+Serial.print(mq1Baseline);
+Serial.print(" | Delta: ");
+Serial.print(mq1Delta);
+Serial.print(" | HighCount: ");
+Serial.print(mq1HighCount);
+Serial.print(" | LowCount: ");
+Serial.print(mq1LowCount);
+Serial.print(" | Smoke: ");
+Serial.println(smokeDetected1 ? "YES" : "NO");
+
+// MQ2
+Serial.print("MQ2: ");
+Serial.print(mq2Raw);
+Serial.print(" | Baseline: ");
+Serial.print(mq2Baseline);
+Serial.print(" | Delta: ");
+Serial.print(mq2Delta);
+Serial.print(" | HighCount: ");
+Serial.print(mq2HighCount);
+Serial.print(" | LowCount: ");
+Serial.print(mq2LowCount);
+Serial.print(" | Smoke: ");
+Serial.println(smokeDetected2 ? "YES" : "NO");
+
+// MQ3
+Serial.print("MQ3: ");
+Serial.print(mq3Raw);
+Serial.print(" | Baseline: ");
+Serial.print(mq3Baseline);
+Serial.print(" | Delta: ");
+Serial.print(mq3Delta);
+Serial.print(" | HighCount: ");
+Serial.print(mq3HighCount);
+Serial.print(" | LowCount: ");
+Serial.print(mq3LowCount);
+Serial.print(" | Smoke: ");
+Serial.println(smokeDetected3 ? "YES" : "NO");
+
+Serial.println("======================================");
 
 sendAllSensorsToFirebase(
   t1, h1,
@@ -1262,6 +1534,8 @@ void handleStepperClose() {
   );
 }
 
+
+
 // ======================================================
 // SETUP
 // ======================================================
@@ -1269,6 +1543,8 @@ void handleStepperClose() {
 void setup() {
 
   Serial.begin(115200);
+
+  analogReadResolution(12);
 
   delay(1000);
 
@@ -1291,6 +1567,9 @@ pinMode(MQ1_PIN, INPUT);
 pinMode(MQ2_PIN, INPUT);
 pinMode(MQ3_PIN, INPUT);
 pinMode(MQ4_PIN, INPUT);
+
+delay(3000);
+calibrateMQBaseline();
 
 Serial.println("MQ-135 ROOM 1 READY");
 Serial.println("MQ-135 ROOM 2 READY");
@@ -1375,6 +1654,13 @@ Serial.println(WiFi.localIP());
 // ======================================================
 
 void loop() {
+
+  int testMQ3 = analogRead(32);
+
+Serial.print("DIRECT GPIO32 ADC = ");
+Serial.println(testMQ3);
+
+delay(1000);
 
    // ====================================================
   // LOCAL HTTP SERVER
@@ -1462,7 +1748,7 @@ static bool lastSmokeState = false;
 // MQ-135 module active LOW:
 // LOW  = smoke/gas detected
 // HIGH = normal
-bool currentSmokeState = (digitalRead(MQ1_PIN) == LOW);
+bool currentSmokeState = false;
 
 // Trigger only when NORMAL -> DETECTED
 if (currentSmokeState && !lastSmokeState && autoModeEnabled) {
@@ -1502,7 +1788,7 @@ static bool lastSmokeState2 = false;
 // MQ-135 Room 2 active LOW:
 // LOW  = smoke/gas detected
 // HIGH = normal
-bool currentSmokeState2 = (digitalRead(MQ2_PIN) == LOW);
+bool currentSmokeState2 = false;
 
 // Trigger only when NORMAL -> DETECTED
 if (currentSmokeState2 && !lastSmokeState2 && autoModeEnabled) {
@@ -1542,7 +1828,7 @@ static bool lastSmokeState3 = false;
 // MQ Room 3 active LOW:
 // LOW  = smoke/gas detected
 // HIGH = normal
-bool currentSmokeState3 = (digitalRead(MQ3_PIN) == LOW);
+bool currentSmokeState3 = false;
 
 // Trigger only when NORMAL -> DETECTED
 if (currentSmokeState3 && !lastSmokeState3 && autoModeEnabled) {
