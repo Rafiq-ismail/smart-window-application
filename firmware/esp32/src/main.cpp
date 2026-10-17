@@ -259,6 +259,10 @@ json += "}";
 // FIREBASE - ALL SENSOR DATA
 // ======================================================
 
+// ======================================================
+// FIREBASE - ALL SENSOR DATA
+// ======================================================
+
 void sendAllSensorsToFirebase(
   float t1, float h1,
   float t2, float h2,
@@ -266,7 +270,10 @@ void sendAllSensorsToFirebase(
   bool rainDetected,
   bool smokeDetected1,
   bool smokeDetected2,
-    bool smokeDetected3
+  bool smokeDetected3,
+  int gasLevel1,
+  int gasLevel2,
+  int gasLevel3
 ) {
 
   if (WiFi.status() != WL_CONNECTED) {
@@ -282,27 +289,34 @@ void sendAllSensorsToFirebase(
 
   String json = "{";
 
+  // Room 1
   json += "\"room1\":{";
-json += "\"temperature\":" + String(t1, 1) + ",";
-json += "\"humidity\":" + String(h1, 1) + ",";
-json += "\"smokeDetected\":";
-json += smokeDetected1 ? "true" : "false";
-json += "},";
+  json += "\"temperature\":" + String(t1, 1) + ",";
+  json += "\"humidity\":" + String(h1, 1) + ",";
+  json += "\"gasLevel\":" + String(gasLevel1) + ",";
+  json += "\"smokeDetected\":";
+  json += smokeDetected1 ? "true" : "false";
+  json += "},";
 
+  // Room 2
   json += "\"room2\":{";
-json += "\"temperature\":" + String(t2, 1) + ",";
-json += "\"humidity\":" + String(h2, 1) + ",";
-json += "\"smokeDetected\":";
-json += smokeDetected2 ? "true" : "false";
-json += "},";
+  json += "\"temperature\":" + String(t2, 1) + ",";
+  json += "\"humidity\":" + String(h2, 1) + ",";
+  json += "\"gasLevel\":" + String(gasLevel2) + ",";
+  json += "\"smokeDetected\":";
+  json += smokeDetected2 ? "true" : "false";
+  json += "},";
 
-json += "\"room3\":{";
-json += "\"temperature\":" + String(t3, 1) + ",";
-json += "\"humidity\":" + String(h3, 1) + ",";
-json += "\"smokeDetected\":";
-json += smokeDetected3 ? "true" : "false";
-json += "},";
+  // Room 3
+  json += "\"room3\":{";
+  json += "\"temperature\":" + String(t3, 1) + ",";
+  json += "\"humidity\":" + String(h3, 1) + ",";
+  json += "\"gasLevel\":" + String(gasLevel3) + ",";
+  json += "\"smokeDetected\":";
+  json += smokeDetected3 ? "true" : "false";
+  json += "},";
 
+  // Rain
   json += "\"rain\":{";
   json += "\"detected\":";
   json += rainDetected ? "true" : "false";
@@ -314,13 +328,13 @@ json += "},";
   Serial.println("Sending ALL sensor data to Firebase...");
   Serial.println(json);
 
- http.setConnectTimeout(1500);
-http.setTimeout(2000);
+  http.setConnectTimeout(1500);
+  http.setTimeout(2000);
 
-http.begin(url);
-http.addHeader("Content-Type", "application/json");
+  http.begin(url);
+  http.addHeader("Content-Type", "application/json");
 
-int httpResponseCode = http.PUT(json);
+  int httpResponseCode = http.PUT(json);
 
   Serial.print("Firebase HTTP response: ");
   Serial.println(httpResponseCode);
@@ -1473,7 +1487,10 @@ sendAllSensorsToFirebase(
   rainDetected,
   smokeDetected1,
   smokeDetected2,
-  smokeDetected3
+  smokeDetected3,
+  mq1Raw,
+  mq2Raw,
+  mq3Raw
 );
 
 
@@ -2086,7 +2103,10 @@ sendAllSensorsToFirebase(
   rainDetected,
   smokeDetected1,
   smokeDetected2,
-  smokeDetected3
+  smokeDetected3,
+  readMQAverage(MQ1_PIN),
+  readMQAverage(MQ2_PIN),
+  readMQAverage(MQ3_PIN)
 );
 
   } else {
